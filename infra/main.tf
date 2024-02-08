@@ -34,3 +34,12 @@ resource "google_cloud_run_service" "default" {
     latest_revision = true
   }
 }
+
+resource "google_cloud_run_service_iam_member" "public_invoker" {
+  location = google_cloud_run_service.default.location
+
+  service  = google_cloud_run_service.default.name
+
+  role   = "roles/run.invoker"
+  member = "allUsers"
+}
