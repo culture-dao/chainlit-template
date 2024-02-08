@@ -11,6 +11,10 @@ resource "google_cloud_run_service" "default" {
     spec {
       containers {
         image = "gcr.io/chainlit-test-413716/chainlit-app:latest"
+
+        ports {
+          container_port = 8000  # Specify your application's port here
+        }
       }
     }
   }

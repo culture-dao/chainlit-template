@@ -6,7 +6,10 @@
 * Familiarize yourself with Google Cloud Build for CI/CD pipelines.
 
 # Google Cloud APIs
-TODO: use `gcloud services enable cloudbuild.googleapis.com` and so on
+```
+gcloud services enable cloudbuild.googleapis.com`
+gcloud services enable run.googleapis.com
+```
 
 Artifact Registry API					
 Cloud Build API					
