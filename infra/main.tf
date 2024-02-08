@@ -15,6 +15,16 @@ resource "google_cloud_run_service" "default" {
         ports {
           container_port = 8000  # Specify your application's port here
         }
+        # Inject environment variables
+        env {
+          name  = "OPENAI_API_KEY"
+          value = "your key"
+        }
+        env {
+          name  = "ASSISTANT_ID"
+          value = "your id"
+        }
+
       }
     }
   }

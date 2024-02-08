@@ -7,8 +7,7 @@
 
 # Google Cloud APIs
 ```
-gcloud services enable cloudbuild.googleapis.com`
-gcloud services enable run.googleapis.com
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com secretmanager.googleapis.com
 ```
 
 Artifact Registry API					
@@ -24,4 +23,7 @@ Google Cloud Storage JSON API
 
 `gcloud config set project chainlit-test`
 
-`gcloud builds submit --config=cloudbuild.yaml . --substitutions=_PROJECT_NAME="chainlit-test-413716"`
+`gcloud builds submit --config=cloudbuild.yaml ."`
+
+gcloud secrets create my-secret --replication-policy="automatic"
+gcloud secrets versions add my-secret --data-file=../openai-assistant/.env 
