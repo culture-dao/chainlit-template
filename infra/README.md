@@ -6,6 +6,8 @@
 * Familiarize yourself with Google Cloud Build for CI/CD pipelines.
 
 # Google Cloud APIs
+TODO: use `gcloud services enable cloudbuild.googleapis.com` and so on
+
 Artifact Registry API					
 Cloud Build API					
 Cloud Logging API					
@@ -17,4 +19,6 @@ Container Registry API
 Google Cloud Storage JSON API		
 
 
-gcloud config set project chainlit-test
+`gcloud config set project chainlit-test`
+
+`gcloud builds submit --config=cloudbuild.yaml . --substitutions=_PROJECT_NAME="chainlit-test-413716"`
