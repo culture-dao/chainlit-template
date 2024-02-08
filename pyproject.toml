@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "chainlit-template"
+version = "0.1.0"
+description = ""
+authors = ["BCM <dahifi@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+chainlit = "^1.0.200"
+openai = "^1.11.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
