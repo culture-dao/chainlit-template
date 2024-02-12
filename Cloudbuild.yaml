@@ -4,6 +4,7 @@ steps:
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/chainlit-app:latest', '.']
 
 
+
 images:
   - 'gcr.io/$PROJECT_ID/chainlit-app:latest'
 

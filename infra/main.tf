@@ -17,14 +17,23 @@ resource "google_cloud_run_service" "default" {
         }
         # Inject environment variables
         env {
-          name  = "OPENAI_API_KEY"
-          value = "your key"
+          name = "OPENAI_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = "OPENAI_API_KEY" # Name of your secret in Secret Manager
+              key  = "latest" # Use "latest" or specify a version
+            }
+          }
         }
         env {
-          name  = "ASSISTANT_ID"
-          value = "your id"
+          name = "ASSISTANT_ID"
+          value_from {
+            secret_key_ref {
+              name = "ASSISTANT_ID" # Name of your secret in Secret Manager
+              key  = "latest" # Use "latest" or specify a version
+            }
+          }
         }
-
       }
     }
   }
