@@ -7,8 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-chainlit = "^1.0.200"
+chainlit = "^1.0.301"
 openai = "^1.11.1"
+agency-swarm = { git = "https://github.com/culture-dao/agency-swarm.git", branch = "main" }
 
 
 [build-system]
