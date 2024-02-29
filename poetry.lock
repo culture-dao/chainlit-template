@@ -2,27 +2,23 @@
 
 [[package]]
 name = "agency-swarm"
-version = "0.1.2"
+version = "0.1.3"
 description = "An open source agent orchestration framework built on top of the latest OpenAI Assistants API."
 optional = false
 python-versions = ">=3.7"
-files = []
-develop = false
+files = [
+    {file = "agency-swarm-0.1.3.tar.gz", hash = "sha256:5cceed992b28e3202c640570de3205526beecd52fb750020bc5832c577a8aa88"},
+    {file = "agency_swarm-0.1.3-py3-none-any.whl", hash = "sha256:2b16e0895bf8bcf1dcc3ec14ff1b7afc942dd50e864e769c1c30f36299779824"},
+]
 
 [package.dependencies]
 deepdiff = "6.7.1"
-instructor = "0.4.8"
+instructor = "0.6.1"
 jsonref = "1.1.0"
 openai = "1.12.0"
 python-dotenv = "1.0.0"
 rich = "13.7.0"
 termcolor = "2.3.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/culture-dao/agency-swarm.git"
-reference = "main"
-resolved_reference = "7075cb9ba5b2fdeb2d57a73c37b842dee6607fee"
 
 [[package]]
 name = "aiofiles"
@@ -771,13 +767,13 @@ testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs
 
 [[package]]
 name = "instructor"
-version = "0.4.8"
+version = "0.6.1"
 description = "structured outputs for llm"
 optional = false
-python-versions = ">=3.9,<4.0"
+python-versions = ">=3.10,<4.0"
 files = [
-    {file = "instructor-0.4.8-py3-none-any.whl", hash = "sha256:5c8f9d96e5faf4512fede714219f9db37298427ee4349422c63018851ed6ddc1"},
-    {file = "instructor-0.4.8.tar.gz", hash = "sha256:2a36c04b3a27f9e6cd1c5d3c7bb9e741cd62ce2e30c11e26c4bcc3b796b107b7"},
+    {file = "instructor-0.6.1-py3-none-any.whl", hash = "sha256:1924e7db821af0c5ac39450d1fe02704e155ead8f49fd15820e118e61085ee58"},
+    {file = "instructor-0.6.1.tar.gz", hash = "sha256:8ab0f6acff096946c6f66da38a7d859a58ff718f519b395ac9da608fa1711658"},
 ]
 
 [package.dependencies]
@@ -786,6 +782,7 @@ docstring-parser = ">=0.15,<0.16"
 openai = ">=1.1.0,<2.0.0"
 pydantic = ">=2.0.2,<3.0.0"
 rich = ">=13.7.0,<14.0.0"
+tenacity = ">=8.2.3,<9.0.0"
 typer = ">=0.9.0,<0.10.0"
 
 [[package]]
@@ -1568,6 +1565,20 @@ files = [
 ]
 
 [[package]]
+name = "tenacity"
+version = "8.2.3"
+description = "Retry code until it succeeds"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "tenacity-8.2.3-py3-none-any.whl", hash = "sha256:ce510e327a630c9e1beaf17d42e6ffacc88185044ad85cf74c0a8887c6a0f88c"},
+    {file = "tenacity-8.2.3.tar.gz", hash = "sha256:5398ef0d78e63f40007c1fb4c0bff96e1911394d2fa8d194f77619c05ff6cc8a"},
+]
+
+[package.extras]
+doc = ["reno", "sphinx", "tornado (>=4.5)"]
+
+[[package]]
 name = "termcolor"
 version = "2.3.0"
 description = "ANSI color formatting for output in terminal"
@@ -2040,4 +2051,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "371b695fa72c15f696fc205009988341c17097424de37a1810be04e95a6a4ebd"
+content-hash = "5924617cc18a85d2a8ffef4c2577aeab27ad3a68e07e9b964f8dd95d4a2a0c78"
