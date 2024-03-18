@@ -1,3 +1,4 @@
 project      = "myprojectapp"
+project_id   = 1234567890
 region       = "myregion"
 service_name = "chainlit-app"

@@ -10,6 +10,13 @@ terraform {
   }
 }
 
+resource "google_project_iam_member" "secret_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
+}
+
+
 resource "google_cloud_run_service" "staging" {
   name     = "chainlit-app"
   location = var.region
@@ -20,7 +27,7 @@ resource "google_cloud_run_service" "staging" {
         image = "gcr.io/${var.project}/chainlit-app:staging"
 
         ports {
-          container_port = 80  # Specify your application's port here
+          container_port = 8080  # Specify your application's port here
         }
         # Inject environment variables
         env {
