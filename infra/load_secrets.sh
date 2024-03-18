@@ -5,7 +5,7 @@ gcloud config set project $GOOGLE_CLOUD_PROJECT
 gcloud auth application-default set-quota-project $GOOGLE_CLOUD_PROJECT
 
 # Path to your application's .env file
-ENV_FILE="../openai-assistant/.env"
+ENV_FILE="../app/.env"
 
 # Read each line in the .env file
 while IFS='=' read -r key value; do
