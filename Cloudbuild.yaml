@@ -1,9 +1,9 @@
 steps:
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/chainlit-app:staging', '.']
+    args: ['build', '-t', 'gcr.io/${PROJECT_ID}/chainlit-app:staging', '.']
 
 
 images:
-  - 'gcr.io/$PROJECT_ID/chainlit-app:staging'
+  - 'gcr.io/${PROJECT_ID}/chainlit-app:staging'
 
