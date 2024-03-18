@@ -1,0 +1,3 @@
+project      = "myprojectapp"
+region       = "myregion"
+service_name = "chainlit-app"
