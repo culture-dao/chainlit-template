@@ -1,84 +1,110 @@
 import json
+import logging
 import os
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, List
+
+import chainlit as cl
 from openai import AsyncOpenAI
+from chainlit_utils import process_files, DictToObject, process_tool_call, tool_map
+from annotations import build_message_with_annotations
+from chainlit.types import ThreadDict
+from dotenv import load_dotenv
 from openai.types.beta import Thread
 from openai.types.beta.threads import (
     MessageContentImageFile,
     MessageContentText,
     ThreadMessage,
 )
-from openai.types.beta.threads.runs import RunStep
-from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
-from create_assistant import tool_map
 
-from chainlit.element import Element
-import chainlit as cl
+logging.basicConfig(level=logging.INFO)
 
+load_dotenv()
 
 api_key = os.environ.get("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=api_key)
-assistant_id = os.environ.get("ASSISTANT_ID")
 
-# List of allowed mime types
-allowed_mime = ["text/csv", "application/pdf"]
+logger = logging.getLogger("chainlit")
 
 
-# Check if the files uploaded are allowed
-async def check_files(files: List[Element]):
-    for file in files:
-        if file.mime not in allowed_mime:
-            return False
-    return True
+@cl.on_chat_start
+async def start_chat():
+    # Create a new thread with the OpenAI API
+    thread = await client.beta.threads.create()  # type: Thread
+    cl.user_session.set("thread", thread)
+
+    # Send the initial welcome message to the user
+    await cl.Message(author="AFGE V.S.", content="Hi, I am the AFGE virtual steward! How can I help you today?").send()
 
 
-# Upload files to the assistant
-async def upload_files(files: List[Element]):
-    file_ids = []
-    for file in files:
-        uploaded_file = await client.files.create(
-            file=Path(file.path), purpose="assistants"
-        )
-        file_ids.append(uploaded_file.id)
-    return file_ids
+@cl.author_rename
+def rename(orig_author: str):
+    rename_dict = {"assistant": "AFGE V.S."}
+    return rename_dict.get(orig_author, orig_author)
 
 
-async def process_files(files: List[Element]):
-    # Upload files if any and get file_ids
-    file_ids = []
-    if len(files) > 0:
-        files_ok = await check_files(files)
+@cl.on_chat_resume
+async def on_chat_resume(thread: ThreadDict):
+    steps = thread.get('steps')
 
-        if not files_ok:
-            file_error_msg = f"Hey, it seems you have uploaded one or more files that we do not support currently, please upload only : {(',').join(allowed_mime)}"
-            await cl.Message(content=file_error_msg).send()
-            return file_ids
-
-        file_ids = await upload_files(files)
-
-    return file_ids
+    # Find the right step that has the thread id we need.
+    # Once found, retrieve it and pass it to the  on_message function.
+    # Since we retrieved it and it's a thread, no modifications are needed to on_message.
+    for step in steps:
+        if step['input'] != '':
+            parsed_input = json.loads(step['input'])
+            kwargs = parsed_input.get('kwargs', {})
+            thread_id = kwargs.get('thread_id', None)
+            logger.info(f"Resuming chat with thread ID: {thread_id}")
+            thread = await client.beta.threads.retrieve(thread_id)
+            break
+    if thread.id is None:
+        response_content = "The old thread could not be fetched."
+    else:
+        response_content = "Welcome back! I'm ready to assist you. How can I help you today?"
+    cl.user_session.set("thread", thread)
+    await cl.Message(author="AFGE V.S.", content=response_content).send()
 
 
 async def process_thread_message(
-    message_references: Dict[str, cl.Message], thread_message: ThreadMessage
+        message_references: Dict[str, cl.Message], thread_message: ThreadMessage
 ):
+    # Loop through each message content with the content and index
     for idx, content_message in enumerate(thread_message.content):
+        # Generate a unique ID for each message using the thread ID and index
         id = thread_message.id + str(idx)
+        # Check if the message content is of type text
         if isinstance(content_message, MessageContentText):
+            # If the message ID already exists in the reference dictionary
             if id in message_references:
+                # Retrieve the existing message from references
                 msg = message_references[id]
-                msg.content = content_message.text.value
+
+                formatted_message = build_message_with_annotations(thread_message)
+                formatted_content = formatted_message.content
+
+                # Update the message content with the new text
+                # msg.content = content_message.text.value
+                msg.content = formatted_content
+                msg.elements = formatted_message.elements
+
                 await msg.update()
             else:
+
+                formatted_message = build_message_with_annotations(thread_message)
+
+                # If the message ID does not exist, create a new message and add it to the references
                 message_references[id] = cl.Message(
-                    author=thread_message.role, content=content_message.text.value
+                    author=thread_message.role, content=formatted_message.content, elements=formatted_message.elements
                 )
+                # Asynchronously send the newly created message
                 await message_references[id].send()
+        # Check if the message content is of type image file
         elif isinstance(content_message, MessageContentImageFile):
+            # Retrieve the image file ID
             image_id = content_message.image_file.file_id
+            # Asynchronously retrieve the content of the image file
             response = await client.files.with_raw_response.retrieve_content(image_id)
+            # Create an image element with the retrieved content
             elements = [
                 cl.Image(
                     name=image_id,
@@ -88,74 +114,18 @@ async def process_thread_message(
                 ),
             ]
 
+            # If the message ID does not exist in the reference dictionary
             if id not in message_references:
+                # Create a new message with no text content but including the image element
                 message_references[id] = cl.Message(
                     author=thread_message.role,
                     content="",
                     elements=elements,
                 )
+                # Asynchronously send the newly created message
                 await message_references[id].send()
         else:
-            print("unknown message type", type(content_message))
-
-
-async def process_tool_call(
-    step_references: Dict[str, cl.Step],
-    step: RunStep,
-    tool_call: ToolCall,
-    name: str,
-    input: Any,
-    output: Any,
-    show_input: str = None,
-):
-    cl_step = None
-    update = False
-    if not tool_call.id in step_references:
-        cl_step = cl.Step(
-            name=name,
-            type="tool",
-            parent_id=cl.context.current_step.id,
-            show_input=show_input,
-        )
-        step_references[tool_call.id] = cl_step
-    else:
-        update = True
-        cl_step = step_references[tool_call.id]
-
-    if step.created_at:
-        cl_step.start = datetime.fromtimestamp(step.created_at).isoformat()
-    if step.completed_at:
-        cl_step.end = datetime.fromtimestamp(step.completed_at).isoformat()
-    cl_step.input = input
-    cl_step.output = output
-
-    if update:
-        await cl_step.update()
-    else:
-        await cl_step.send()
-
-
-class DictToObject:
-    def __init__(self, dictionary):
-        for key, value in dictionary.items():
-            if isinstance(value, dict):
-                setattr(self, key, DictToObject(value))
-            else:
-                setattr(self, key, value)
-
-    def __str__(self):
-        return "\n".join(f"{key}: {value}" for key, value in self.__dict__.items())
-
-
-@cl.on_chat_start
-async def start_chat():
-    thread = await client.beta.threads.create()
-    cl.user_session.set("thread", thread)
-    await cl.Message(
-        author="assistant",
-        content="Ask me math or weather questions!",
-        disable_feedback=True,
-    ).send()
+            logger.error("unknown message type", type(content_message))
 
 
 @cl.step(name="Assistant", type="run", root=True)
@@ -164,6 +134,8 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
     init_message = await client.beta.threads.messages.create(
         thread_id=thread_id, role="user", content=human_query, file_ids=file_ids
     )
+
+    assistant_id = os.environ.get("ASSISTANT_ID")
 
     # Create the run
     run = await client.beta.threads.runs.create(
@@ -175,6 +147,8 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
     tool_outputs = []
     # Periodically check for updates
     while True:
+        thread_message = None
+
         run = await client.beta.threads.runs.retrieve(
             thread_id=thread_id, run_id=run.id
         )
@@ -210,7 +184,7 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
                             tool_call=tool_call,
                             name=tool_call.type,
                             input=tool_call.code_interpreter.input
-                            or "# Generating code",
+                                  or "# Generating code",
                             output=tool_call.code_interpreter.outputs,
                             show_input="python",
                         )
@@ -254,8 +228,8 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
                             {"output": function_output, "tool_call_id": tool_call.id}
                         )
             if (
-                run.status == "requires_action"
-                and run.required_action.type == "submit_tool_outputs"
+                    run.status == "requires_action"
+                    and run.required_action.type == "submit_tool_outputs"
             ):
                 await client.beta.threads.runs.submit_tool_outputs(
                     thread_id=thread_id,
@@ -264,6 +238,11 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
                 )
 
         await cl.sleep(2)  # Refresh every 2 seconds
+
+        if run.status is "completed" and thread_message.content is None:
+            thread_message.content = "An error occurred, please try again later or contact support"
+            await process_thread_message(message_references, thread_message)
+
         if run.status in ["cancelled", "failed", "completed", "expired"]:
             break
 
@@ -272,6 +251,7 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
 async def on_message(message_from_ui: cl.Message):
     thread = cl.user_session.get("thread")  # type: Thread
     files_ids = await process_files(message_from_ui.elements)
+    print(thread)
     await run(
         thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
     )
