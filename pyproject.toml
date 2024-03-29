@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.11"
 chainlit = "^1.0.200"
 openai = "^1.11.1"
-mailchimp-marketing = "^3.0.80"
+agency-swarm = "^0.1.6"
 
 
 [build-system]
