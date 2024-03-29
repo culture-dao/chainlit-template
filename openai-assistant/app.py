@@ -6,9 +6,9 @@ from typing import Dict, Any, List
 from openai import AsyncOpenAI
 from openai.types.beta import Thread
 from openai.types.beta.threads import (
-    MessageContentImageFile,
-    MessageContentText,
-    ThreadMessage,
+    ImageFile,
+    Text,
+    Message,
 )
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
@@ -17,13 +17,21 @@ from create_assistant import tool_map
 from chainlit.element import Element
 import chainlit as cl
 
+from agentloader import AgentLoader
 
 api_key = os.environ.get("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=api_key)
 assistant_id = os.environ.get("ASSISTANT_ID")
+agent = AgentLoader(id=assistant_id)
+agent.init_oai()
 
 # List of allowed mime types
 allowed_mime = ["text/csv", "application/pdf"]
+
+
+async def retrieve_assistant():
+    assistant = await client.beta.assistants.retrieve(assistant_id)
+    return assistant
 
 
 # Check if the files uploaded are allowed
@@ -62,21 +70,27 @@ async def process_files(files: List[Element]):
 
 
 async def process_thread_message(
-    message_references: Dict[str, cl.Message], thread_message: ThreadMessage
+        message_references: Dict[str, cl.Message], thread_message: Message
 ):
+    # Retrieve the assistant so we can get its name
+    assistant = await retrieve_assistant()
     for idx, content_message in enumerate(thread_message.content):
         id = thread_message.id + str(idx)
-        if isinstance(content_message, MessageContentText):
+        if isinstance(content_message, Text):
             if id in message_references:
                 msg = message_references[id]
                 msg.content = content_message.text.value
                 await msg.update()
             else:
+                if thread_message.role == 'assistant':
+                    display_name = assistant.name
+                else:
+                    display_name = 'user'
                 message_references[id] = cl.Message(
-                    author=thread_message.role, content=content_message.text.value
+                    author=display_name, content=content_message.text.value
                 )
                 await message_references[id].send()
-        elif isinstance(content_message, MessageContentImageFile):
+        elif isinstance(content_message, ImageFile):
             image_id = content_message.image_file.file_id
             response = await client.files.with_raw_response.retrieve_content(image_id)
             elements = [
@@ -89,8 +103,12 @@ async def process_thread_message(
             ]
 
             if id not in message_references:
+                if thread_message.role == 'assistant':
+                    display_name = assistant.name
+                else:
+                    display_name = 'user'
                 message_references[id] = cl.Message(
-                    author=thread_message.role,
+                    author=display_name,
                     content="",
                     elements=elements,
                 )
@@ -100,13 +118,13 @@ async def process_thread_message(
 
 
 async def process_tool_call(
-    step_references: Dict[str, cl.Step],
-    step: RunStep,
-    tool_call: ToolCall,
-    name: str,
-    input: Any,
-    output: Any,
-    show_input: str = None,
+        step_references: Dict[str, cl.Step],
+        step: RunStep,
+        tool_call: ToolCall,
+        name: str,
+        input: Any,
+        output: Any,
+        show_input: str = None,
 ):
     cl_step = None
     update = False
@@ -151,9 +169,13 @@ class DictToObject:
 async def start_chat():
     thread = await client.beta.threads.create()
     cl.user_session.set("thread", thread)
+
+    # Retrieve the assistant so we can get the name
+    assistant = await retrieve_assistant()
+
     await cl.Message(
-        author="assistant",
-        content="Ask me math or weather questions!",
+        author=assistant.name,
+        content=f"Hi I'm {assistant.name}! How can I help you today?",
         disable_feedback=True,
     ).send()
 
@@ -210,7 +232,7 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
                             tool_call=tool_call,
                             name=tool_call.type,
                             input=tool_call.code_interpreter.input
-                            or "# Generating code",
+                                  or "# Generating code",
                             output=tool_call.code_interpreter.outputs,
                             show_input="python",
                         )
@@ -254,8 +276,8 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
                             {"output": function_output, "tool_call_id": tool_call.id}
                         )
             if (
-                run.status == "requires_action"
-                and run.required_action.type == "submit_tool_outputs"
+                    run.status == "requires_action"
+                    and run.required_action.type == "submit_tool_outputs"
             ):
                 await client.beta.threads.runs.submit_tool_outputs(
                     thread_id=thread_id,
