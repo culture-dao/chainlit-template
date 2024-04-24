@@ -7,9 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-chainlit = "^1.0.200"
-openai = "^1.11.1"
-agency-swarm = "^0.1.6"
+chainlit = "^1.0.505"
+openai = "^1.23.3"
+mailchimp-marketing = "^3.0.80"
 
 
 [build-system]
