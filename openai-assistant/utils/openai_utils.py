@@ -20,7 +20,7 @@ def initialize_openai_client() -> AsyncOpenAI:
         ValueError: If the OpenAI API key is not found in the environment variables.
         Exception: If there is an issue initializing the OpenAI client.
     """
-    load_dotenv()
+    load_dotenv('../.env', override=True)
     openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
         logger.error("OpenAI API key not found. Please check your environment variables.")
