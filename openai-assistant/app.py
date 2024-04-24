@@ -54,9 +54,8 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
 
 @cl.on_message
 async def on_message(message_from_ui: cl.Message):
-    thread = cl.user_session.get("thread")
+    thread = cl.user_session.get("thread")  # type: Thread
     files_ids = await process_files(message_from_ui.elements)
-    print(thread)
     await run(
         thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
     )
