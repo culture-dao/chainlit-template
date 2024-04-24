@@ -89,7 +89,7 @@ async def step_logic(
 ):
     # Add the message to the thread
     await client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=human_query, file_ids=file_ids
+        thread_id=thread_id, role="user", content=human_query, attachments=file_ids
     )
 
     assistant_id = os.environ.get("ASSISTANT_ID")
@@ -127,7 +127,7 @@ async def step_logic(
                     message_id=step_details.message_creation.message_id,
                     thread_id=thread_id,
                 )
-                await process_thread_message(message_references, thread_message)
+                await process_thread_message(message_references, thread_message, client)
 
             if step_details.type == "tool_calls":
                 for tool_call in step_details.tool_calls:
