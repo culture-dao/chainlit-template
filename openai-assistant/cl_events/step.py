@@ -4,7 +4,11 @@ from datetime import datetime
 from typing import List, Dict, Any
 import chainlit as cl
 from chainlit.logger import logger
-from openai.types.beta.threads import ThreadMessage, MessageContentText, MessageContentImageFile
+from openai.types.beta.threads import (
+    Message as ThreadMessage,
+    TextContentBlock as MessageContentText,
+    ImageFileContentBlock as MessageContentImageFile
+)
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
