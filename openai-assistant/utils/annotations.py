@@ -10,13 +10,13 @@ from chainlit import Message
 from chainlit.element import Text
 from chainlit.logger import logger
 from openai.types import FileObject
-from openai.types.beta.threads import Message as ThreadMessage
-from openai.types.beta.threads.message_content_text import (
-    TextAnnotationFileCitation,
-    TextAnnotationFileCitationFileCitation,
+from openai.types.beta.threads import (
+    Message as ThreadMessage
 )
 
-from openai_utils import initialize_openai_client
+from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, FileCitationAnnotation as TextAnnotationFileCitation
+
+from .openai_utils import initialize_openai_client
 
 
 class OpenAIAdapter:
