@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.11"
 chainlit = "^1.0.200"
 openai = "^1.11.1"
+mailchimp = "^2.0.10"
 
 
 [build-system]
