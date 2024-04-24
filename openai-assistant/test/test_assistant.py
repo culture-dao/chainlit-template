@@ -21,7 +21,7 @@ class TestAssistant(unittest.IsolatedAsyncioTestCase):
 
     async def test_retrieve_assistant_invalid(self):
         with self.assertRaises(Exception):
-            result = await retrieve_assistant("nonsense")
+            await retrieve_assistant("nonsense")
 
 
 class TestRuns(unittest.IsolatedAsyncioTestCase):
