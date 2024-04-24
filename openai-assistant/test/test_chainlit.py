@@ -4,9 +4,9 @@ This is for testing the annotations or whatever other display functionality is n
 
 import chainlit as cl
 
-from test.fixture import mock_message_with_multiple_annotations, message_no_citation, message_with_citation_2, \
-    message_with_citation
-from utils.annotations import build_message_with_annotations
+from test.fixture import message_with_multiple_annotations_no_quotes, message_no_citation, message_with_invalid_index, \
+    message_with_citation, message_with_multiple_annotations
+from utils.annotations import OpenAIAdapter
 
 
 @cl.on_chat_start
@@ -29,12 +29,14 @@ async def on_chat_start():
     messages = [
         message_no_citation,
         message_with_citation,
-        message_with_citation_2,
-        mock_message_with_multiple_annotations
+        message_with_invalid_index,
+        message_with_multiple_annotations_no_quotes,
+        message_with_multiple_annotations
     ]
     for thread_message in messages:
-        cl_message = build_message_with_annotations(thread_message)
-        await cl_message.send()
+        adapter = OpenAIAdapter(thread_message)
+        await adapter.main()
+        await adapter.get_message().send()
 
 
 if __name__ == "__main__":
