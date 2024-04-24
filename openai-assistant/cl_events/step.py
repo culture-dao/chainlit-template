@@ -12,7 +12,7 @@ from openai.types.beta.threads import (
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
-from annotations import build_message_with_annotations
+from utils.annotations import OpenAIAdapter
 
 
 async def process_thread_message(
@@ -24,30 +24,30 @@ async def process_thread_message(
     for idx, content_message in enumerate(thread_message.content):
         # Generate a unique ID for each message using the thread ID and index
         id = thread_message.id + str(idx)
+
+        adapter = OpenAIAdapter(thread_message)
+        await adapter.main()
+        content = adapter.get_content()
+        elements = adapter.get_elements()
+
         # Check if the message content is of type text
-        if isinstance(content_message,
-                      MessageContentText):
+        if isinstance(content_message, MessageContentText):
             # If the message ID already exists in the reference dictionary
             if id in message_references:
                 # Retrieve the existing message from references
                 msg = message_references[id]
 
-                formatted_message = build_message_with_annotations(thread_message)
-                formatted_content = formatted_message.content
-
                 # Update the message content with the new text
                 # msg.content = content_message.text.value
-                msg.content = formatted_content
-                msg.elements = formatted_message.elements
+                msg.content = content
+                msg.elements = elements
 
                 await msg.update()
             else:
 
-                formatted_message = build_message_with_annotations(thread_message)
-
                 # If the message ID does not exist, create a new message and add it to the references
                 message_references[id] = cl.Message(
-                    author=thread_message.role, content=formatted_message.content, elements=formatted_message.elements
+                    author=thread_message.role, content=content, elements=elements
                 )
                 # Asynchronously send the newly created message
                 await message_references[id].send()
