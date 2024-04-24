@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import MagicMock
 
-from openai_utils import initialize_openai_client
+from openai.types.beta import FileSearchTool
+
+from utils.openai_utils import initialize_openai_client
 from utils.file_handler import (
     list_assistant_files,
     file_comparison,
@@ -71,18 +73,6 @@ class TestFileHandler(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(unused_files, expected_unused_files, "The function should identify unused file IDs correctly.")
 
-
-class TestBuggyAssistantFiles(unittest.TestCase):
-
-    def test_buggy_files(self):
-        test_assistant_id = "asst_UdBAhFZsmVSJCJ8THgCpA1tK"
-        client = initialize_openai_client()
-        assistants = list_assistants(client)
-        my_assistant = [assistant for assistant in assistants if assistant.id == test_assistant_id][0]
-        self.assertEqual(my_assistant.file_ids, [], "")
-
-        retrieved_assistant = client.beta.assistants.retrieve(test_assistant_id)
-        self.assertGreater(retrieved_assistant.file_ids, [])
 
 
 if __name__ == '__main__':
