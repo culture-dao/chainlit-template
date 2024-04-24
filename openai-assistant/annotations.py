@@ -1,7 +1,7 @@
 from chainlit.element import Text
 from chainlit.logger import logger
 from chainlit.message import Message
-from openai.types.beta.threads import ThreadMessage
+from openai.types.beta.threads.message import Message as ThreadMessage
 
 
 def construct_value_with_citations(message):
