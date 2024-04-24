@@ -4,7 +4,7 @@ import unittest
 from dotenv import load_dotenv
 
 # New Annotations
-from app.utils.annotations import construct_value_with_citations, extract_citations, create_annotations_list, \
+from utils.annotations import construct_value_with_citations, extract_citations, create_annotations_list, \
     validate_indexes, has_annotations
 from fixture import message_with_citation, message_with_citation_2, mock_message_with_multiple_annotations, \
     message_no_citation
