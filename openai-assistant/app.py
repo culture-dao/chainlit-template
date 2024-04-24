@@ -1,26 +1,20 @@
-import json
 import logging
-import os
 from typing import Dict, List, Optional
 
 import chainlit as cl
-from openai import AsyncOpenAI
+from literalai import Thread
 from chainlit_utils import process_files
 from chainlit.types import ThreadDict
-from dotenv import load_dotenv
 
 from cl_events.oauth_callback import oauth_callback_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.step import step_logic
+from utils.openai_utils import initialize_openai_client
 
 logging.basicConfig(level=logging.INFO)
 
-load_dotenv()
-
-# TODO: Use the OAIwrapper
-api_key = os.environ.get("OPENAI_API_KEY")
-client = AsyncOpenAI(api_key=api_key)
+client = initialize_openai_client()
 
 logger = logging.getLogger("chainlit")
 
@@ -38,7 +32,7 @@ async def on_chat_start_callback():
 
 @cl.author_rename
 def rename(orig_author: str):
-    rename_dict = {"assistant": "AFGE V.S."}
+    rename_dict = {"assistant": "ASSISTANT NAME"}
     return rename_dict.get(orig_author, orig_author)
 
 
@@ -54,7 +48,7 @@ async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
 
 @cl.on_message
 async def on_message(message_from_ui: cl.Message):
-    thread = cl.user_session.get("thread")  # type: Thread
+    thread: Thread = cl.user_session.get("thread")
     files_ids = await process_files(message_from_ui.elements)
     await run(
         thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
