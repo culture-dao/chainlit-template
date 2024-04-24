@@ -429,16 +429,6 @@ files = [
 ]
 
 [[package]]
-name = "docopt"
-version = "0.4.0"
-description = "Pythonic argument parser, that will make you smile"
-optional = false
-python-versions = "*"
-files = [
-    {file = "docopt-0.4.0.tar.gz", hash = "sha256:b752582228e280b7be3677c5a758a352e352ad0bde3a849fd51f79239e88e475"},
-]
-
-[[package]]
 name = "fastapi"
 version = "0.108.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -767,19 +757,21 @@ packaging = ">=23.0"
 pydantic = ">=1,<3"
 
 [[package]]
-name = "mailchimp"
-version = "2.0.10"
-description = "Deprecated. Replaced by mailchimp-marketing - A CLI client and Python API library for the MailChimp email platform."
+name = "mailchimp-marketing"
+version = "3.0.80"
+description = "Mailchimp Marketing API"
 optional = false
 python-versions = "*"
 files = [
-    {file = "mailchimp-2.0.10-py2-none-any.whl", hash = "sha256:fdc79ce2ab77d038dc3c4637fd9d2c2fc0c3ec02de9539388e3fb1ed03e25824"},
-    {file = "mailchimp-2.0.10.tar.gz", hash = "sha256:5227999904233a7d2e9ce5eac5225b9a5fac0318ae5107e3ed09c8bf89286768"},
+    {file = "mailchimp_marketing-3.0.80-py3-none-any.whl", hash = "sha256:a5bcb3ebd3be60908c65af765f8195724e6fd2d61ecf6da667a794c5bc7b84d3"},
 ]
 
 [package.dependencies]
-docopt = "0.4.0"
-requests = ">=0.13.2"
+certifi = ">=2017.4.17"
+python-dateutil = ">=2.1"
+requests = ">=2.23"
+six = ">=1.10"
+urllib3 = ">=1.23"
 
 [[package]]
 name = "marshmallow"
@@ -1268,6 +1260,20 @@ docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
 tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
 
 [[package]]
+name = "python-dateutil"
+version = "2.9.0.post0"
+description = "Extensions to the standard Python datetime module"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+files = [
+    {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
+    {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
+]
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1406,6 +1412,17 @@ wsproto = "*"
 
 [package.extras]
 docs = ["sphinx"]
+
+[[package]]
+name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
 
 [[package]]
 name = "sniffio"
@@ -1883,4 +1900,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "cef74cd3809ecc9c83c17ee997920460ed7d12e9c8f4eb35a41bc6caa56f3348"
+content-hash = "8dc1bc4243da2ac75bb336b4bdf0c03c0e60492a00f5fe9dfd24ff17f84c00f6"
