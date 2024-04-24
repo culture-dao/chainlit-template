@@ -4,7 +4,7 @@ import chainlit as cl
 import openai
 from dotenv import load_dotenv
 
-from app.create_assistant import retrieve_assistant
+from create_assistant import retrieve_assistant
 from chainlit_utils import DictToObject
 
 load_dotenv()
@@ -42,7 +42,7 @@ class TestRuns(unittest.IsolatedAsyncioTestCase):
         # This needs optimization
 
         await self.client.beta.threads.messages.create(
-            thread_id=thread.id, role="user", content=query, file_ids=[]
+            thread_id=thread.id, role="user", content=query
         )
 
         run = await self.client.beta.threads.runs.create(

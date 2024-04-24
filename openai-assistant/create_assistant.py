@@ -1,116 +1,76 @@
 import json
-from openai import AsyncOpenAI
-import asyncio
+import logging
 import os
-from dotenv import load_dotenv
+from typing import Dict, Any, Optional
 
+from openai import AsyncOpenAI
+from openai.types.beta import Assistant
 
-load_dotenv()
+ASSISTANT_NAME = "AFGE Virtual Steward"
 
 api_key = os.environ.get("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=api_key)
 
-tools = [
-    {"type": "code_interpreter"},
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_weather",
-            "description": "Get the current weather",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA",
-                    },
-                    "format": {
-                        "type": "string",
-                        "enum": ["celsius", "fahrenheit"],
-                        "description": "The temperature unit to use. Infer this from the users location.",
-                    },
-                },
-                "required": ["location", "format"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_n_day_weather_forecast",
-            "description": "Get an N-day weather forecast",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA",
-                    },
-                    "format": {
-                        "type": "string",
-                        "enum": ["celsius", "fahrenheit"],
-                        "description": "The temperature unit to use. Infer this from the users location.",
-                    },
-                    "num_days": {
-                        "type": "integer",
-                        "description": "The number of days to forecast",
-                    },
-                },
-                "required": ["location", "format", "num_days"],
-            },
-        },
-    },
-]
+logger = logging.getLogger("chainlit")
 
 
-def get_current_weather(location: str, format: str):
-    # return dummy weather
-    return "The current weather in {} is {} degrees {}".format(location, 20, format)
+def load_json(filename: str) -> Dict[str, Any]:
+    """
+        Loads a JSON object from a file.
+
+        Args:
+            filename: The name of the file to load the JSON from.
+
+        Returns:
+            The JSON object loaded from the file if it exists, otherwise an empty dictionary.
+        """
+    try:
+        with open(filename, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.error(f"{filename} not found.")
+        return {}
 
 
-def get_n_day_weather_forecast(location: str, format: str, num_days: int):
-    # return dummy weather
-    return "The weather forecast for the next {} days in {} is {} degrees {}".format(
-        num_days, location, 20, format
-    )
+def get_assistant_id(assistant_name: str = ASSISTANT_NAME) -> Optional[str]:
+    """
+    Retrieves the assistant ID by name from the loaded assistant dictionary.
+
+    Args:
+        assistant_name: The name of the assistant to retrieve the ID for. Defaults to ASSISTANT_NAME.
+
+    Returns:
+        The assistant ID if present in the dictionary, otherwise None.
+    """
+    # we're running into path issues with the test files.
+    assistant_dict = load_json("assistants.json")
+    return assistant_dict.get(assistant_name)
 
 
-tool_map = {
-    "get_current_weather": get_current_weather,
-    "get_n_day_weather_forecast": get_n_day_weather_forecast,
-}
+async def retrieve_assistant(assistant_id: str) -> Assistant:
+    """
+        Retrieves and logs details about an existing assistant by its ID.
 
+        This async function attempts to retrieve an assistant using an API call.
+        If successful, it logs the assistant's name and file count. If it fails,
+        it logs the error encountered.
 
-async def create():
-    # ... your existing create function code ...
+        Args:
+            assistant_id: The ID of the assistant to retrieve.
 
-    instructions = """You are a personal math tutor. Write and run code to answer math questions.
-Enclose math expressions in $$ (this is helpful to display latex). Example:
-```
-Given a formula below $$ s = ut + \frac{1}{2}at^{2} $$ Calculate the value of $s$ when $u = 10\frac{m}{s}$ and $a = 2\frac{m}{s^{2}}$ at $t = 1s$
-```
-
-You can also answer weather questions!
-"""
-
-    assistant = await client.beta.assistants.create(
-        name="Math Tutor And Weather Bot",
-        instructions=instructions,
-        tools=tools,
-        model="gpt-4-1106-preview",
-    )
-    assistant_name = "math_tutor_and_weather_bot"
-    # append key value pair to assistants.json
-
-    def load_or_create_json(filename):
-        try:
-            return json.load(open(filename, "r"))
-        except FileNotFoundError:
-            return {}
-
-    assistant_dict = load_or_create_json("assistants.json")
-    assistant_dict[assistant_name] = assistant.id
-    json.dump(assistant_dict, open("assistants.json", "w"))
-
-if __name__ == "__main__":
-    asyncio.run(create())
+        Returns:
+            The retrieved assistant object on success, None on failure.
+    """
+    from openai import NotFoundError
+    try:
+        assistant = await client.beta.assistants.retrieve(assistant_id)
+        logger.info(f"Retrieved existing assistant: {assistant.name}")
+        return assistant
+    except NotFoundError as e:
+        logger.error({e.body['message']})
+        raise
+    except Exception as e:
+        # A fallback for any unexpected exceptions
+        logger.error(f"An unexpected error occurred: {e}")
+        # Consider re-raising the exception after logging to make the problem noticeable
+        raise
