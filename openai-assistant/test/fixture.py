@@ -1,9 +1,61 @@
 from openai.pagination import AsyncCursorPage
-from openai.types.beta.threads import ThreadMessage, MessageContentText
-from openai.types.beta.threads.message_content_text import TextAnnotationFileCitation, \
-    TextAnnotationFileCitationFileCitation, Text
+from openai.types.beta.threads import (
+    Message as ThreadMessage,
+    TextContentBlock as MessageContentText,
+    Text
+)
 
-thread_messages = AsyncCursorPage[ThreadMessage](data=[ThreadMessage(id='msg_bfNoIB6ZLQ5c7907eehyE1a4', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[MessageContentText(text=Text(annotations=[TextAnnotationFileCitation(end_index=75, file_citation=TextAnnotationFileCitationFileCitation(file_id='file-uYryyZwgG9RMrg0CLfsUijYX', quote='Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval'), start_index=64, text='eement:\n\n"A', type='file_citation')], value='Certainly, here is the citation from the VA/AFGE 2023 Master Agreement:\n\n"Annual leave is provided to allow employees extended leave for rest and recreation and to provide periods of time off for personal and unscheduled purposes. All employees may request at least two consecutive weeks of annual leave per year and take such leave subject to the Department’s approval."【13†source】'), type='text')], created_at=1706110855, file_ids=[], metadata={}, object='thread.message', role='assistant', run_id='run_7doRCnP8FSfmNrXIthF1oDsh', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_YPVtE4Yp9UG0E7Fd6eHzH9mJ', assistant_id=None, content=[MessageContentText(text=Text(annotations=[], value='give me a link citation'), type='text')], created_at=1706110852, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None, thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_Mxw191A64shRYUW0rQ2ziDSJ', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[MessageContentText(text=Text(annotations=[TextAnnotationFileCitation(end_index=75, file_citation=TextAnnotationFileCitationFileCitation(file_id='file-uYryyZwgG9RMrg0CLfsUijYX', quote='Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval'), start_index=64, text='【13†source】', type='file_citation')], value='The information is provided in the 2023 VA/AFGE Master Agreement【13†source】.'), type='text')], created_at=1706110798, file_ids=[], metadata={}, object='thread.message', role='assistant', run_id='run_Xnkyz8EWwo54MqzjiIQ8JygC', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_ryjdSRBlzqu0yNygiD1XUHDg', assistant_id=None, content=[MessageContentText(text=Text(annotations=[], value='cite your source'), type='text')], created_at=1706110796, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None, thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_AxincdJwTPu1tx15K3F25tNb', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[MessageContentText(text=Text(annotations=[], value="According to the VA/AFGE Master Agreement, employees can request annual leave for rest, recreation, and personal purposes. While there's no specific provision for taking time off on your birthday, you can request to use your annual leave for that purpose. However, all annual leave is subject to the Department’s approval【15†source】."), type='text')], created_at=1706110774, file_ids=[], metadata={}, object='thread.message', role='assistant', run_id='run_0lNdEqpK6lTzl56TRg84MJ5B', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_ts3dVQm7maQKSzvsK2QfjPRl', assistant_id=None, content=[MessageContentText(text=Text(annotations=[], value='can i get time off for my birthday?'), type='text')], created_at=1706110766, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None, thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_kVkfOBI61tgwFGONA9wOioT5', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[MessageContentText(text=Text(annotations=[], value="It appears you conducted a test of the system. If you need assistance or have questions, feel free to ask, and I'll be happy to help."), type='text')], created_at=1705946531, file_ids=[], metadata={}, object='thread.message', role='assistant', run_id='run_iGFXweKMk00qbGpmpjEX8RkO', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'), ThreadMessage(id='msg_HxlGoDpIN4Rts0nTrqmT5lc3', assistant_id=None, content=[MessageContentText(text=Text(annotations=[], value='test'), type='text')], created_at=1705946529, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None, thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi')], object='list', first_id='msg_bfNoIB6ZLQ5c7907eehyE1a4', last_id='msg_HxlGoDpIN4Rts0nTrqmT5lc3', has_more=False)
+from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, FileCitationAnnotation as TextAnnotationFileCitation
+
+
+thread_messages = AsyncCursorPage[ThreadMessage](data=[
+    ThreadMessage(id='msg_bfNoIB6ZLQ5c7907eehyE1a4', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[
+        MessageContentText(text=Text(annotations=[TextAnnotationFileCitation(end_index=75,
+                                                                             file_citation=TextAnnotationFileCitationFileCitation(
+                                                                                 file_id='file-uYryyZwgG9RMrg0CLfsUijYX',
+                                                                                 quote='Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval'),
+                                                                             start_index=64, text='eement:\n\n"A',
+                                                                             type='file_citation')],
+                                     value='Certainly, here is the citation from the VA/AFGE 2023 Master Agreement:\n\n"Annual leave is provided to allow employees extended leave for rest and recreation and to provide periods of time off for personal and unscheduled purposes. All employees may request at least two consecutive weeks of annual leave per year and take such leave subject to the Department’s approval."【13†source】'),
+                           type='text')], created_at=1706110855, file_ids=[], metadata={}, object='thread.message',
+                  role='assistant', run_id='run_7doRCnP8FSfmNrXIthF1oDsh', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_YPVtE4Yp9UG0E7Fd6eHzH9mJ', assistant_id=None,
+                  content=[MessageContentText(text=Text(annotations=[], value='give me a link citation'), type='text')],
+                  created_at=1706110852, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None,
+                  thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_Mxw191A64shRYUW0rQ2ziDSJ', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[
+        MessageContentText(text=Text(annotations=[TextAnnotationFileCitation(end_index=75,
+                                                                             file_citation=TextAnnotationFileCitationFileCitation(
+                                                                                 file_id='file-uYryyZwgG9RMrg0CLfsUijYX',
+                                                                                 quote='Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval'),
+                                                                             start_index=64, text='【13†source】',
+                                                                             type='file_citation')],
+                                     value='The information is provided in the 2023 VA/AFGE Master Agreement【13†source】.'),
+                           type='text')], created_at=1706110798, file_ids=[], metadata={}, object='thread.message',
+                  role='assistant', run_id='run_Xnkyz8EWwo54MqzjiIQ8JygC', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_ryjdSRBlzqu0yNygiD1XUHDg', assistant_id=None,
+                  content=[MessageContentText(text=Text(annotations=[], value='cite your source'), type='text')],
+                  created_at=1706110796, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None,
+                  thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_AxincdJwTPu1tx15K3F25tNb', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[
+        MessageContentText(text=Text(annotations=[],
+                                     value="According to the VA/AFGE Master Agreement, employees can request annual leave for rest, recreation, and personal purposes. While there's no specific provision for taking time off on your birthday, you can request to use your annual leave for that purpose. However, all annual leave is subject to the Department’s approval【15†source】."),
+                           type='text')], created_at=1706110774, file_ids=[], metadata={}, object='thread.message',
+                  role='assistant', run_id='run_0lNdEqpK6lTzl56TRg84MJ5B', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_ts3dVQm7maQKSzvsK2QfjPRl', assistant_id=None, content=[
+        MessageContentText(text=Text(annotations=[], value='can i get time off for my birthday?'), type='text')],
+                  created_at=1706110766, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None,
+                  thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_kVkfOBI61tgwFGONA9wOioT5', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[
+        MessageContentText(text=Text(annotations=[],
+                                     value="It appears you conducted a test of the system. If you need assistance or have questions, feel free to ask, and I'll be happy to help."),
+                           type='text')], created_at=1705946531, file_ids=[], metadata={}, object='thread.message',
+                  role='assistant', run_id='run_iGFXweKMk00qbGpmpjEX8RkO', thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi'),
+    ThreadMessage(id='msg_HxlGoDpIN4Rts0nTrqmT5lc3', assistant_id=None,
+                  content=[MessageContentText(text=Text(annotations=[], value='test'), type='text')],
+                  created_at=1705946529, file_ids=[], metadata={}, object='thread.message', role='user', run_id=None,
+                  thread_id='thread_FpHTe1KhMlIPGoH8CRz5TsSi')], object='list', first_id='msg_bfNoIB6ZLQ5c7907eehyE1a4',
+                                                 last_id='msg_HxlGoDpIN4Rts0nTrqmT5lc3', has_more=False)
 
 message_with_citation = ThreadMessage(
     id='msg_c58PujBb4o6zQiSb7uoOf5M0',
@@ -30,39 +82,54 @@ message_with_citation = ThreadMessage(
     thread_id='thread_5C8BE2EGL4JYlpKBLNM1PaiS'
 )
 
-message_no_citation = ThreadMessage(id='msg_GL9XTpzwoo3XBWTQePtRjraw', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK', content=[MessageContentText(text=Text(annotations=[], value='Acknowledged. The system is ready to assist you. How can I help you today?'), type='text')], created_at=1706122266, file_ids=[], metadata={}, object='thread.message', role='assistant', run_id='run_iOOpi2eDMKqyyZ8hFNwx4kjw', thread_id='thread_GT9TMUClpNDcSdeObqst8yIP')
+message_no_citation = ThreadMessage(id='msg_GL9XTpzwoo3XBWTQePtRjraw', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
+                                    content=[MessageContentText(text=Text(annotations=[],
+                                                                          value='Acknowledged. The system is ready to assist you. How can I help you today?'),
+                                                                type='text')], created_at=1706122266, file_ids=[],
+                                    metadata={}, object='thread.message', role='assistant',
+                                    run_id='run_iOOpi2eDMKqyyZ8hFNwx4kjw', thread_id='thread_GT9TMUClpNDcSdeObqst8yIP')
 
-
-message_with_citation_2 = ThreadMessage(id='msg_Sppd96GlwIPg1DpJu5pRnUzy', assistant_id='asst_GPa9ziLBlAg4gmZXCq6L5nF9', content=[MessageContentText(text=Text(annotations=[TextAnnotationFileCitation(end_index=258, file_citation=TextAnnotationFileCitationFileCitation(file_id='file-EI9yVqfmoB06AiK8iy9MlU2Y', quote='Section 1 - General\nA. Compensation is excluded from negotiation under 38 USC 7422'), start_index=247, text='ce】.', type='file_citation')], value='My apologies for any confusion. Here is the citation of the source from which I found the information:\n\nVA/AFGE Master Agreement (2023), Section 1 - General, Paragraph A states: "Compensation is excluded from negotiation under 38 USC 7422"【11†source】.'), type='text')], created_at=1706801495, file_ids=[], metadata={}, object='thread.message', role='assistant', run_id='run_9SWRbFyipzqTckDcBnq8RSRF', thread_id='thread_XiYxyBLx049tEb6ub6XPdonS')
+message_with_citation_2 = ThreadMessage(id='msg_Sppd96GlwIPg1DpJu5pRnUzy', assistant_id='asst_GPa9ziLBlAg4gmZXCq6L5nF9',
+                                        content=[MessageContentText(text=Text(annotations=[
+                                            TextAnnotationFileCitation(end_index=258,
+                                                                       file_citation=TextAnnotationFileCitationFileCitation(
+                                                                           file_id='file-EI9yVqfmoB06AiK8iy9MlU2Y',
+                                                                           quote='Section 1 - General\nA. Compensation is excluded from negotiation under 38 USC 7422'),
+                                                                       start_index=247, text='ce】.',
+                                                                       type='file_citation')],
+                                                                              value='My apologies for any confusion. Here is the citation of the source from which I found the information:\n\nVA/AFGE Master Agreement (2023), Section 1 - General, Paragraph A states: "Compensation is excluded from negotiation under 38 USC 7422"【11†source】.'),
+                                                                    type='text')], created_at=1706801495, file_ids=[],
+                                        metadata={}, object='thread.message', role='assistant',
+                                        run_id='run_9SWRbFyipzqTckDcBnq8RSRF',
+                                        thread_id='thread_XiYxyBLx049tEb6ub6XPdonS')
 
 mock_message_with_missing_quote_annotation = ThreadMessage(
-        id='msg_Re9atM5m8xmZbRCuHxtvbLiD',
-        assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
-        content=[MessageContentText(
-            text=Text(
-                annotations=[TextAnnotationFileCitation(
-                    end_index=330,
-                    file_citation=TextAnnotationFileCitationFileCitation(
-                        file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
-                        quote='',
-                    ),
-                    start_index=319,
-                    text=' ',
-                    type='file_citation'
-                )],
-                value="If you need to leave work early due to an emergency, it is not specified that you have to enter a formal leave request. However, the procedures for unplanned leave—including leaving due to an emergency—usually require that you contact your supervisor or designee to request the leave. If the leave is to begin immediately, you should inform your supervisor or their designee, and you will be informed whether the leave is approved or disapproved at the time it is requested【5:5†VA-AFGE-2023-Master-Agreement】. It is important that during the operational hours of your facility, you rea out to someone who has the authority to receive and act upon your request.\n\nAdditionally, it's worth noting that for emergency annual leave, approval is generally granted when conditions warrant, but this is considered on an individual basis . \n\nTherefore, while you might not need to enter a formal request, you should still notify your supervisor as soon as possible to ensure that your leave is properly documented and approved."
-            ),
-            type='text'
-        )],
-        created_at=1711128199,
-        file_ids=[],
-        metadata={},
-        object='thread.message',
-        role='assistant',
-        run_id='run_MJZ6wpn2Rl8k76ZjvZvJ6dTi',
-        thread_id='thread_9U55LSxsPM95cS6eXBEVjNHS'
-    )
-
+    id='msg_Re9atM5m8xmZbRCuHxtvbLiD',
+    assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
+    content=[MessageContentText(
+        text=Text(
+            annotations=[TextAnnotationFileCitation(
+                end_index=330,
+                file_citation=TextAnnotationFileCitationFileCitation(
+                    file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
+                    quote='',
+                ),
+                start_index=319,
+                text=' ',
+                type='file_citation'
+            )],
+            value="If you need to leave work early due to an emergency, it is not specified that you have to enter a formal leave request. However, the procedures for unplanned leave—including leaving due to an emergency—usually require that you contact your supervisor or designee to request the leave. If the leave is to begin immediately, you should inform your supervisor or their designee, and you will be informed whether the leave is approved or disapproved at the time it is requested【5:5†VA-AFGE-2023-Master-Agreement】. It is important that during the operational hours of your facility, you rea out to someone who has the authority to receive and act upon your request.\n\nAdditionally, it's worth noting that for emergency annual leave, approval is generally granted when conditions warrant, but this is considered on an individual basis . \n\nTherefore, while you might not need to enter a formal request, you should still notify your supervisor as soon as possible to ensure that your leave is properly documented and approved."
+        ),
+        type='text'
+    )],
+    created_at=1711128199,
+    file_ids=[],
+    metadata={},
+    object='thread.message',
+    role='assistant',
+    run_id='run_MJZ6wpn2Rl8k76ZjvZvJ6dTi',
+    thread_id='thread_9U55LSxsPM95cS6eXBEVjNHS'
+)
 
 mock_message_with_multiple_annotations = ThreadMessage(
     id='msg_87rPyPoPlRIoJ5E5jafdC6E2',

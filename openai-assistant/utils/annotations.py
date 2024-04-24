@@ -10,7 +10,7 @@ from chainlit import Message
 from chainlit.element import Text
 from chainlit.logger import logger
 from openai.types import FileObject
-from openai.types.beta.threads import ThreadMessage
+from openai.types.beta.threads import Message as ThreadMessage
 from openai.types.beta.threads.message_content_text import (
     TextAnnotationFileCitation,
     TextAnnotationFileCitationFileCitation,
