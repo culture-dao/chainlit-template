@@ -5,7 +5,7 @@ import sys
 from dotenv import load_dotenv
 from literalai import LiteralClient
 
-# The username of the user
+# The username of the user you want to delete
 identifier = ""
 
 load_dotenv()

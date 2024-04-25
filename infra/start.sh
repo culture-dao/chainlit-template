@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script sets up a bucket for terraform state and applies the terraform configuration.
 source .env
 
 # If new project:
