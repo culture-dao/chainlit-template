@@ -17,5 +17,5 @@ imagename=${formattedbranch:0:15}
 # Build the Docker image
 cd ..
 
-gcloud builds submit --config=cloudbuild.yaml --substitutions=_TAG_NAME=$formattedbranch app
+gcloud builds submit --config=cloudbuild.yaml --substitutions=_TAG_NAME=$formattedbranch openai-assistant
 gcloud run deploy staging --image gcr.io/$GOOGLE_CLOUD_PROJECT/app:$formattedbranch
