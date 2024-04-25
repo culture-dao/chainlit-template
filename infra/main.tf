@@ -5,7 +5,7 @@ provider "google" {
 
 terraform {
   backend "gcs" {
-    bucket  = "clickmakersapp_tf_state"
+    bucket  = ""
     prefix  = "terraform/state"
   }
 }
@@ -16,15 +16,21 @@ resource "google_project_iam_member" "secret_accessor" {
   member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
 }
 
+resource "google_project_iam_member" "secret_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
+}
+
 
 resource "google_cloud_run_service" "staging" {
-  name     = "chainlit-app"
+  name     = "staging"
   location = var.region
 
   template {
     spec {
       containers {
-        image = "gcr.io/${var.project}/chainlit-app:staging"
+        image = "gcr.io/${var.project}/app:staging"
 
         ports {
           container_port = 8080  # Specify your application's port here
@@ -56,4 +62,18 @@ resource "google_cloud_run_service_iam_member" "public_invoker" {
 
   role   = "roles/run.invoker"
   member = "allUsers"
+}
+
+resource "google_cloud_run_domain_mapping" "staging" {
+  location = var.region
+  name     = "staging.yourdomain.com"
+
+  metadata {
+
+    namespace = var.project
+  }
+
+  spec {
+    route_name = google_cloud_run_service.staging.name
+  }
 }

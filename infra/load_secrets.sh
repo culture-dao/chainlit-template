@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This file is a quick way to load your secrets into Google Cloud Secret Manager.
+# These vars should map to the vars specified in Terraform Cloud Run components.
+
+source .env
 gcloud config set project $GOOGLE_CLOUD_PROJECT
 gcloud auth application-default set-quota-project $GOOGLE_CLOUD_PROJECT
 
