@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from openai import AsyncOpenAI
 from openai.types.beta import Assistant
 
-ASSISTANT_NAME = "AFGE Virtual Steward"
+ASSISTANT_NAME = "My Assistant"
 
 api_key = os.environ.get("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=api_key)
