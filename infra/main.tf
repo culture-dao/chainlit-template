@@ -1,19 +1,33 @@
 provider "google" {
-  project = "chainlit-test-413716"
-  region  = "us-east4"
+  project = var.project
+  region  = var.region
 }
 
-resource "google_cloud_run_service" "default" {
+terraform {
+  backend "gcs" {
+    bucket  = "clickmakersapp_tf_state"
+    prefix  = "terraform/state"
+  }
+}
+
+resource "google_project_iam_member" "secret_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${var.project_id}-compute@developer.gserviceaccount.com"
+}
+
+
+resource "google_cloud_run_service" "staging" {
   name     = "chainlit-app"
-  location = "us-east4"
+  location = var.region
 
   template {
     spec {
       containers {
-        image = "gcr.io/chainlit-test-413716/chainlit-app:latest"
+        image = "gcr.io/${var.project}/chainlit-app:staging"
 
         ports {
-          container_port = 8000  # Specify your application's port here
+          container_port = 8080  # Specify your application's port here
         }
         # Inject environment variables
         env {
@@ -21,15 +35,6 @@ resource "google_cloud_run_service" "default" {
           value_from {
             secret_key_ref {
               name = "OPENAI_API_KEY" # Name of your secret in Secret Manager
-              key  = "latest" # Use "latest" or specify a version
-            }
-          }
-        }
-        env {
-          name = "ASSISTANT_ID"
-          value_from {
-            secret_key_ref {
-              name = "ASSISTANT_ID" # Name of your secret in Secret Manager
               key  = "latest" # Use "latest" or specify a version
             }
           }
@@ -45,9 +50,9 @@ resource "google_cloud_run_service" "default" {
 }
 
 resource "google_cloud_run_service_iam_member" "public_invoker" {
-  location = google_cloud_run_service.default.location
+  location = google_cloud_run_service.staging.location
 
-  service  = google_cloud_run_service.default.name
+  service  = google_cloud_run_service.staging.name
 
   role   = "roles/run.invoker"
   member = "allUsers"
