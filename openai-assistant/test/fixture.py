@@ -1,27 +1,110 @@
+from unittest.mock import patch
+
 from openai.pagination import AsyncCursorPage
+from openai.types.beta.threads import Message, TextContentBlock
 from openai.types.beta.threads import (
     Message as ThreadMessage, MessageContent as MessageContentText, TextContentBlock as Text
 )
-from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, FileCitationAnnotation as TextAnnotationFileCitation
+from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, \
+    FileCitationAnnotation as TextAnnotationFileCitation, FileCitation
+from openai.types.beta.threads.file_citation_annotation import FileCitationAnnotation
+
+
+@patch('openai.types.beta.threads.file_citation_annotation.FileCitation')
+def thread_message_list(mock_file_citation):
+    mock_file_citation.return_value = FileCitation(file_id='file-A8iZLTqbU5cxrNOWfe4gd404', quote='')
+    # your test code here
+
+    return {AsyncCursorPage[Message](data=[
+        Message(
+            id='msg_bSYn4619a6wpGITvOuRacHBJ',
+            assistant_id='asst_2lanl1dvlTkCpOofxiPrHvzr',
+            attachments=[],
+            completed_at=None,
+            content=[TextContentBlock(text=Text(annotations=[FileCitationAnnotation(end_index=438,
+                                                                                    file_citation=FileCitation(
+                                                                                        file_id='file-A8iZLTqbU5cxrNOWfe4gd404',
+                                                                                        quote=None),
+                                                                                    start_index=426,
+                                                                                    text='【4:0†source】',
+                                                                                    type='file_citation'),
+                                                             FileCitationAnnotation(end_index=680,
+                                                                                    file_citation=FileCitation(
+                                                                                        file_id='file-A8iZLTqbU5cxrNOWfe4gd404',
+                                                                                        quote=None),
+                                                                                    start_index=668,
+                                                                                    text='【4:1†source】',
+                                                                                    type='file_citation'),
+                                                             FileCitationAnnotation(end_index=1023,
+                                                                                    file_citation=FileCitation(
+                                                                                        file_id='file-A8iZLTqbU5cxrNOWfe4gd404',
+                                                                                        quote=None),
+                                                                                    start_index=1011,
+                                                                                    text='【4:2†source】',
+                                                                                    type='file_citation'),
+                                                             FileCitationAnnotation(end_index=1349,
+                                                                                    file_citation=FileCitation(
+                                                                                        file_id='file-A8iZLTqbU5cxrNOWfe4gd404',
+                                                                                        quote=None),
+                                                                                    start_index=1337,
+                                                                                    text='【4:3†source】',
+                                                                                    type='file_citation'),
+                                                             FileCitationAnnotation(end_index=1674,
+                                                                                    file_citation=FileCitation(
+                                                                                        file_id='file-A8iZLTqbU5cxrNOWfe4gd404',
+                                                                                        quote=None),
+                                                                                    start_index=1662,
+                                                                                    text='【4:3†source】',
+                                                                                    type='file_citation')],
+                                                value="The Culture, as depicted in the notes, portrays a highly advanced and unique civilization. Here are some key cultural aspects derived from your notes:\n\n1. **Societal Structure and Autonomy**: The Culture is a space-faring civilization that emphasizes the importance of freedom and individual autonomy. It is formed from a federation of different species and emphasizes non-hierarchical, voluntary cooperation among its members【4:0†source】.\n\n2. **Technological Integration and Genetic Manipulation**: The Culture has undergone periods of extensive human-machine interfacing and genetic modifications, leading to significant enhancements in human capabilities and health【4:1†source】.\n\n3. **Lifespan and Views on Death**: Individuals in the Culture usually live for several centuries, experiencing a plateau of youth and vitality before aging more rapidly towards the end of their life. Death is naturally integrated into society, with creative funereal practices such as launching remains into a star system's sun【4:2†source】.\n\n4. **Education and Continuous Learning**: Education in the Culture is a lifelong process, reflecting their fundamentally rational and materialist philosophy. They recognize the importance of understanding less fortunate beings, which drives a continuous effort towards self-improvement and knowledge acquisition【4:3†source】.\n\n5. **Political and Social Philosophy**: The Culture exercises a form of governance that involves direct democracy with regular referenda, ensuring that power remains decentralized. The overarching belief system discourages traditional forms of authority and embraces a pragmatic approach to societal challenges【4:3†source】.\n\nThese insights display a complex and thoughtful social, political, and technological environment that defines the Culture, constantly evolving and adapting to maintain a balance between individual freedoms and collective responsibility ."),
+                                      type='text')], created_at=1713978292, incomplete_at=None,
+            incomplete_details=None, metadata={}, object='thread.message', role='assistant',
+            run_id='run_hwvChx89gOwldXbXotPBRnMs', status=None, thread_id='thread_PPecfP37eSXH14froEsJJCSr'
+        ),
+        Message(
+            id='msg_cSiYq74CRZsNiKiIlMm0R7PZ',
+            assistant_id=None,
+            attachments=[],
+            completed_at=None,
+            content=[
+                TextContentBlock(
+                    text=Text(
+                        annotations=[],
+                        value='Tell me some things about the culture. use the notes\n'
+                    ),
+                    type='text')], created_at=1713978285, incomplete_at=None, incomplete_details=None,
+            metadata={},
+            object='thread.message', role='user', run_id=None, status=None,
+            thread_id='thread_PPecfP37eSXH14froEsJJCSr'
+        )
+    ],
+        object='list', first_id='msg_bSYn4619a6wpGITvOuRacHBJ',
+        last_id='msg_cSiYq74CRZsNiKiIlMm0R7PZ', has_more=False
+    )
+    }
 
 
 # VALID, SHOULD RENDER FINE
-message_with_citation = ThreadMessage(
+message_with_citation = Message(
     id='message_with_citation',
     assistant_id='test_fixtures',
     content=[
-        MessageContentText(
+        TextContentBlock(
             text=Text(
-                annotations=[TextAnnotationFileCitation(
+                annotations=[FileCitationAnnotation(
                     end_index=241,
-                    file_citation=TextAnnotationFileCitationFileCitation(
+                    file_citation=FileCitation(
                         file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
                         quote='Section 2 - Annual Leave\nA. Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval. \n\n\nDepartment of Veterans Affairs Labor Management Relations | DVA /AFGE Master Agreement 187\n\nEMPLOYEE RIGHTS AND PRIVILEGES | ARTICLE 35 - TIME AND LEAVE\n\n\nB. The use of accrued annual leave is an absolute right of the employee \nsubject to the right of the Department to approve when leave may'),
                     start_index=230,
-                    text='【11†source】',
-                    type='file_citation')],
-                value='Certainly, the information regarding annual leave comes from the Department of Veterans Affairs Labor Management Relations and the DVA/AFGE Master Agreement, specifically under ARTICLE 35 - TIME AND LEAVE, Section 2 - Annual Leave【11†source】.'),
-            type='text')],
+                    text=' ',
+                    type='file_citation'
+                )],
+                value='Certainly, the information regarding annual leave comes from the Department of Veterans Affairs Labor Management Relations and the DVA/AFGE Master Agreement, specifically under ARTICLE 35 - TIME AND LEAVE, Section 2 - Annual Leave .'
+            ),
+            type='text'
+        )
+    ],
     created_at=1705592604,
     file_ids=[],
     metadata={},
@@ -46,12 +129,22 @@ message_with_invalid_index = ThreadMessage(id='message_with_invalid_index',
                                            run_id='run_9SWRbFyipzqTckDcBnq8RSRF',
                                            thread_id='thread_XiYxyBLx049tEb6ub6XPdonS')
 
-message_no_citation = ThreadMessage(id='msg_GL9XTpzwoo3XBWTQePtRjraw', assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
-                                    content=[MessageContentText(text=Text(annotations=[],
-                                                                          value='Acknowledged. The system is ready to assist you. How can I help you today?'),
-                                                                type='text')], created_at=1706122266, file_ids=[],
-                                    metadata={}, object='thread.message', role='assistant',
-                                    run_id='run_iOOpi2eDMKqyyZ8hFNwx4kjw', thread_id='thread_GT9TMUClpNDcSdeObqst8yIP')
+message_no_citation = Message(
+            id='msg_cSiYq74CRZsNiKiIlMm0R7PZ',
+            assistant_id=None,
+            attachments=[],
+            completed_at=None,
+            content=[
+                TextContentBlock(
+                    text=Text(
+                        annotations=[],
+                        value='Tell me some things about the culture. use the notes\n'
+                    ),
+                    type='text')], created_at=1713978285, incomplete_at=None, incomplete_details=None,
+            metadata={},
+            object='thread.message', role='user', run_id=None, status=None,
+            thread_id='thread_PPecfP37eSXH14froEsJJCSr'
+        )
 
 message_with_missing_quote_annotation = ThreadMessage(
     id='message_with_missing_quote_annotation',
@@ -151,9 +244,6 @@ message_with_no_quote = ThreadMessage(
     role='assistant', run_id='run_NLuWvTH6jB8bRDDUdnA6GYFj',
     thread_id='thread_3VUqa6OrkWXM98qIlpjWnmv7')
 
-raw_user_data = {'id': '1234567890', 'email': 'testuser@nowhere.com', 'verified_email': True,
-                 'name': 'Test User', 'given_name': 'Test', 'family_name': 'Users', 'picture': '',
-                 'locale': 'en'}
 
 citation = TextAnnotationFileCitationFileCitation(
     file_id='file-uYryyZwgG9RMrg0CLfsUijYX',

@@ -6,15 +6,25 @@ from typing import Dict, Optional, Callable, Any
 import chainlit as cl
 import requests
 
-from mailchimp import add_user_to_mailchimp_list
+from utils.mailchimp import MailchimpHelper
 
 discord_webhook = os.environ.get("DISCORD_WEBHOOK")
 
 logger = logging.getLogger("chainlit")
 
+MAILCHIMP_LIST_ID = os.getenv('MAILCHIMP_LIST_ID')
+MAILCHIMP_REGION = os.getenv('MAILCHIMP_REGION')
+MAILCHIMP_API_KEY = os.getenv('MAILCHIMP_API_KEY')
 
-async def oauth_callback_logic(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: cl.User) -> \
-        Optional[cl.User]:
+mailchimp = MailchimpHelper(
+            MAILCHIMP_API_KEY,
+            MAILCHIMP_LIST_ID,
+            MAILCHIMP_REGION
+        )
+
+
+async def oauth_callback_logic(provider_id: str, token: str, raw_user_data: Dict[str, str],
+                               default_app_user: cl.User) -> Optional[cl.User]:
     logger.info(f"raw_user_data: {raw_user_data}")
     logger.info(f"provider_id: {provider_id}")
     action = "Authenticated"
@@ -25,7 +35,7 @@ async def oauth_callback_logic(provider_id: str, token: str, raw_user_data: Dict
     # Offload the Discord posting to a background task
     offload_to_background(loop, post_to_discord, discord_webhook, raw_user_data, action)
 
-    offload_to_background(loop, add_user_to_mailchimp_list, raw_user_data)
+    offload_to_background(loop, mailchimp.add_user_to_mailchimp_list, raw_user_data)
 
     return default_app_user
 
