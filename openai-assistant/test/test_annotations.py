@@ -46,11 +46,6 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(message.elements)
 
     async def test_extract_citations(self):
-        # This test fails because it's tied to old production instance data.
-        # This needs to be an integration test or mocked out
-
-        result = []
-
         message = OpenAIAdapter(message_with_multiple_annotations_no_quotes)
         await message.set_citations()
         message.set_elements()
@@ -63,9 +58,9 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
         result = message.elements
         self.assertEqual(len(result), 3)
 
-        self.assertEqual(result[0][0], '[1] VA-AFGE-2023-Master-Agreement')
-        self.assertEqual(result[1][0], '[2] VA-AFGE-2023-Master-Agreement')
-        self.assertEqual(result[2][0], '[3] Supplemental Agreement - Other')
+        self.assertEqual(result[0][0], '[1] file-NHlneG03h2SdhS8Qzab5dbMw')
+        self.assertEqual(result[1][0], '[2] file-NHlneG03h2SdhS8Qzab5dbMw')
+        self.assertEqual(result[2][0], '[3] file-80O35GgEFpRE38EhT2HYe6qt')
 
     def test_construct_value_with_citations(self):
 
