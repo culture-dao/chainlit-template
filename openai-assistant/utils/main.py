@@ -2,19 +2,13 @@ import asyncio
 import os
 import yaml
 
-import openai
-from dotenv import load_dotenv
-from openai import AsyncOpenAI
 from openai.pagination import AsyncCursorPage
 from openai.resources import Files, AsyncFiles
 from openai.resources.beta.assistants import AsyncAssistants
 from openai.types import FileObject
 from openai.types.beta import Assistant
 
-load_dotenv(override=True)
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-client = AsyncOpenAI()
+from utils.openai_utils import client
 
 
 def load_or_create_file(filename):

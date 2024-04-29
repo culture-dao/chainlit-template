@@ -1,10 +1,11 @@
-import openai
 from openai.types.beta.assistant import ToolResources, ToolResourcesCodeInterpreter, ToolResourcesFileSearch, Assistant
+
+from utils.openai_utils import client
 
 
 class OpenAIAssistantManager:
     def __init__(self, api_key: str):
-        self.client = openai.Client(api_key=api_key)
+        self.client = client
 
     def create_assistant(self, assistant_data) -> Assistant:
         tool_resources = ToolResources(

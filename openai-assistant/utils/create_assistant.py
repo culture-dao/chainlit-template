@@ -3,13 +3,13 @@ import logging
 
 from typing import Dict, Any, Optional
 
+import yaml
 from openai.types.beta import Assistant
+from pydantic import ValidationError
 
-from utils.openai_utils import initialize_openai_client
+from utils.openai_utils import client
 
 ASSISTANT_NAME = "My Assistant"
-
-client = initialize_openai_client()
 
 logger = logging.getLogger("chainlit")
 
@@ -27,6 +27,18 @@ def load_json(filename: str) -> Dict[str, Any]:
     try:
         with open(filename, "r") as file:
             return json.load(file)
+    except FileNotFoundError:
+        logger.error(f"{filename} not found.")
+        return {}
+
+
+def load_yaml(filename: str) -> Dict[str, Any]:
+    try:
+        with open(filename, "r") as file:
+            data = yaml.safe_load(file)
+            # Check if data is a dictionary and if so, create Assistant instances
+            if isinstance(data, dict):
+                return {key: Assistant.model_construct(**value) for key, value in data.items()}
     except FileNotFoundError:
         logger.error(f"{filename} not found.")
         return {}
@@ -74,3 +86,12 @@ async def retrieve_assistant(assistant_id: str) -> Assistant:
         logger.error(f"An unexpected error occurred: {e}")
         # Consider re-raising the exception after logging to make the problem noticeable
         raise
+
+
+def main():
+    result = load_yaml('liminal_flow.yml')
+    pass
+
+
+if __name__ == '__main__':
+    main()
