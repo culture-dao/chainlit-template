@@ -46,6 +46,8 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(message.elements)
 
     async def test_extract_citations(self):
+        # This test fails because it's tied to old production instance data.
+        # This needs to be an integration test or mocked out
 
         result = []
 
