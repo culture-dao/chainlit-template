@@ -4,7 +4,7 @@ import chainlit as cl
 import openai
 from dotenv import load_dotenv
 
-from create_assistant import retrieve_assistant
+from utils.create_assistant import retrieve_assistant
 from chainlit_utils import DictToObject
 
 load_dotenv()
