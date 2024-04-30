@@ -52,10 +52,10 @@ async def main():
     results = load_yaml(VECTOR_STORES_CONFIG_PATH, VectorStore)
     if not results:
         results = await vector_stores_list()
-    if not results:
-        vector_store = await vector_stores_create()
+        if not results:
+            results = await vector_stores_create()
         with open(VECTOR_STORES_CONFIG_PATH, 'w') as f:
-            yaml.dump(vector_store, f)
+            yaml.dump(results, f)
 
 # OLD SHIT HERE
 
@@ -168,7 +168,7 @@ async def find_duplicate_files():
         return duplicates_only
     except Exception as e:
         logging.error(f"Failed to find duplicates due to an error: {e}")
-        raise Exception(f"Failed to find duplicates") from e
+        raise Exception("Failed to find duplicates") from e
 
 
 def output_duplicates(duplicates):
@@ -196,18 +196,14 @@ def check_duplicate_files_usage(duplicates, assistant_file_map):
     return unused_files
 
 
-async def list_assistants():
-    """List all the assistants"""
-    assistants = await client.beta.assistants.list()
-    return assistants.data
-
-
 def map_assistants(assistants):
+    # BROKEN v2 API
     assistant_data = []
     for assistant in assistants:
         # This fixes the files for PROD not showing up.
-        assistant = assistant_retrieve(assistant.id)
-        # Since we want the file ids, if they don't have any we don't need them.
+        assistant = assistant_handler.assistant_retrieve(assistant.id)
+
+        # Broken
         if len(assistant.file_ids) == 0:
             continue
         assistant_data.append({"id": assistant.id, "files": assistant.file_ids})

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 from openai.types.beta import VectorStore
 
 from utils import vector_stores_handler
+from utils.vector_stores_handler import file_comparison
 
 
 class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
