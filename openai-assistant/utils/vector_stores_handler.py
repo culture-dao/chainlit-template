@@ -6,30 +6,12 @@ import sys
 
 from openai.pagination import AsyncPage
 from openai.types import FileObject
-from openai.types.beta import VectorStore
-
-from utils import files_handler
-from utils.assistant_handler import assistants_list
-from utils.files_handler import files_list
-from utils.openai_utils import client
+from openai.types.beta import VectorStore, Assistant
 
 from utils import files_handler, assistant_handler
 from utils.openai_utils import client, AsyncPaginatorHelper
 
-T = TypeVar('T')
-
-
-class AsyncPaginatorHelper(Generic[T]):
-    """
-    AsyncPage objects are limited to 100 results, 20 default, so we'll need pagination handling on the 'list' functions.
-    """
-    @staticmethod
-    async def collect_all_items(paginator: AsyncPage[FileObject]) -> List[T]:
-        items = []
-        async for item in paginator:
-            logging.info(item)
-            items.append(item)
-        return items
+from typing import List
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
