@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import chainlit as cl
@@ -8,19 +9,21 @@ from chainlit_utils import DictToObject
 
 from utils.openai_utils import client
 
+ASSISTANT_ID = os.getenv('ASSISTANT_ID')
+
 
 class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
         self.client = client
 
-    async def test_retrieve_assistant_valid(self):
-        result = await assistant_handler.retrieve_assistant("asst_GPa9ziLBlAg4gmZXCq6L5nF9")
+    async def test_assistant_retrieve_valid(self):
+        result = await assistant_handler.assistant_retrieve(ASSISTANT_ID)
         assert result
 
-    async def test_retrieve_assistant_invalid(self):
+    async def test_assistant_retrieve_invalid(self):
         with self.assertRaises(Exception):
-            await assistant_handler.retrieve_assistant("nonsense")
+            await assistant_handler.assistant_retrieve("nonsense")
 
 
 class TestRuns(unittest.IsolatedAsyncioTestCase):

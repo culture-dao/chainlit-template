@@ -8,6 +8,9 @@ from openai.pagination import AsyncPage
 from openai.types import FileObject
 from openai.types.beta import VectorStore
 
+from utils import files_handler
+from utils.assistant_handler import assistants_list
+from utils.files_handler import files_list
 from utils.openai_utils import client
 
 import asyncio
@@ -33,17 +36,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logging.getLogger("httpx").setLevel("WARNING")
 
 
-async def files_list() -> List[FileObject]:
-    """Lists all the files in our org"""
-    try:
-        files: AsyncPage[FileObject] = await client.files.list()
-        return await AsyncPaginatorHelper.collect_all_items(files)
-
-    except Exception as e:
-        logging.error(f"Failed to list files due to an error: {e}")
-        raise Exception("Failed to list files") from e
-
-
 async def vector_stores_list() -> List[VectorStore]:
     """Lists all the vector_stores for a specific assistant"""
     try:
@@ -62,9 +54,6 @@ async def vector_stores_create() -> VectorStore:
         logging.error(f"Failed to create vector_stores due to an error: {e}")
         raise Exception("vector_stores_create failed") from e
 
-
-async def vector_stores_files():
-    return await client.beta.vector_stores.files()
 
 def list_client_files(client):
     """Lists all the files from the OpenAI client"""
@@ -115,7 +104,7 @@ def append_to_json_file(file_path, new_data):
         json.dump(existing_data, file, indent=4)
 
 
-def retrieve_file(client, file_id):
+def retrieve_file(file_id):
     """Retrieves a specific file from OpenAI"""
     try:
         file = client.files.retrieve(file_id)
@@ -128,7 +117,7 @@ def retrieve_file(client, file_id):
 def write_and_list_file_information(assistant_id):
     """Lists the files for an assistant and writes them to a JSON"""
     try:
-        files = files_list(assistant_id)
+        files = files_list()
         if files:
             formatted_information = format_file_information(client, files)
             append_to_json_file("file_data.json", formatted_information)
@@ -179,7 +168,7 @@ def file_comparison(oai_files, local_files):
 def find_duplicate_files(client):
     """Finds duplicates files in the OpenAI client"""
     try:
-        files_data = list_client_files(client)
+        files_data = files_list()
 
         files_by_name = {}
 
@@ -240,11 +229,6 @@ def map_assistants(client, assistants):
     return assistant_data
 
 
-def delete_file(client, file_id):
-    """Delete a file from OpenAI"""
-    client.files.delete(file_id)
-
-
 async def main():
 
     test_assistant_id = os.getenv('ASSISTANT_ID')
@@ -257,7 +241,7 @@ async def main():
 
     file_comparison(local_files, openai_files)
 
-    assistants = await list_assistants(client)
+    assistants = await assistants_list()
 
     assistants_with_files = map_assistants(client, assistants)
 
@@ -271,7 +255,7 @@ async def main():
     if len(sys.argv) >= 2 and sys.argv[1] == "delete":
         for file_id in unused_files:
             try:
-                delete_file(client, file_id)
+                await files_handler.files_delete(file_id)
                 logging.info(f"Successfully deleted file ID: {file_id}")
             except Exception as e:
                 logging.error(f"Error deleting file ID {file_id}: {e}")

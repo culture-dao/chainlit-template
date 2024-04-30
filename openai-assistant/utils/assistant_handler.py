@@ -65,7 +65,7 @@ def get_assistant_id(assistant_name: str = ASSISTANT_NAME) -> Optional[str]:
     return assistant_dict.get(assistant_name)
 
 
-async def retrieve_assistant(assistant_id: str) -> Assistant:
+async def assistant_retrieve(assistant_id: str) -> Assistant:
     """
         Retrieves and logs details about an existing assistant by its ID.
 
@@ -88,13 +88,11 @@ async def retrieve_assistant(assistant_id: str) -> Assistant:
         logger.error({e.body['message']})
         raise
     except Exception as e:
-        # A fallback for any unexpected exceptions
         logger.error(f"An unexpected error occurred: {e}")
-        # Consider re-raising the exception after logging to make the problem noticeable
         raise
 
 
-async def get_assistants():
+async def assistants_list():
     config_path = ASSISTANT_CONFIG_PATH
     load_or_create_file(config_path)
     assistants: AsyncCursorPage[Assistant] = await AsyncAssistants(client).list()
@@ -110,7 +108,7 @@ async def get_assistants():
     return assistants_dict
 
 
-async def create_assistant(config) -> Assistant:
+async def assistants_create(config) -> Assistant:
     return await client.beta.assistants.create(
         **config
     )
@@ -121,14 +119,14 @@ async def main():
     results = load_yaml(ASSISTANT_CONFIG_PATH)
     if not results:
         # No config, load from OAI
-        results = await get_assistants()
+        results = await assistants_list()
     if not results:
         # No agents, load template
         results = load_yaml('liminal_flow.yml')
         for i in results.keys():
             assistant = results[i]
             if not assistant.id:
-                results[i] = await create_assistant(assistant.to_dict())
+                results[i] = await assistants_create(assistant.to_dict())
         with open(ASSISTANT_CONFIG_PATH, 'w') as f:
             yaml.dump(results, f)
 
