@@ -1,0 +1,10 @@
+liminal_flow_agent:
+  description: "A personal knowledge management assistant for Project Liminal Flow."
+  instructions: "This assistant helps manage and streamline knowledge processes, integrating seamlessly with blockchain and AI technologies."
+  metadata:
+    project: "Liminal Flow"
+    version: "1.0"
+    author: "Wade.Digital"
+  model: "gpt-4-turbo"
+  name: "Liminal Flow Agent"
+

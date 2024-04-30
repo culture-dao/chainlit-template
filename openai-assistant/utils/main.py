@@ -20,20 +20,6 @@ def load_or_create_file(filename):
             return {}
 
 
-async def get_assistants():
-    config_path = 'assistants.yaml'
-    load_or_create_file(config_path)
-    assistants: AsyncCursorPage[Assistant] = await AsyncAssistants(client).list()
-
-    assistants_dict = {}
-    assistant: Assistant
-    for assistant in assistants.data:
-        assistants_dict[assistant.id] = assistant.dict()
-
-    with open(config_path, 'w') as f:
-        yaml.dump(assistants_dict, f)
-
-
 async def get_files():
     config_path = 'files.yaml'
     load_or_create_file(config_path)
@@ -42,13 +28,12 @@ async def get_files():
     obj_dict = {}
     file: FileObject
     for file in files.data:
-        obj_dict[file.id] = file.dict()
+        obj_dict[file.id] = file.to_dict()
 
     with open(config_path, 'w') as f:
         yaml.dump(obj_dict, f)
 
 
 if __name__ == "__main__":
-    asyncio.run(get_assistants())
     asyncio.run(get_files())
     pass

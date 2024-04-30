@@ -1,11 +1,14 @@
+import asyncio
 import json
 import logging
+import os
 
 from typing import Dict, Any, Optional
 
 import yaml
+from openai.pagination import AsyncCursorPage
+from openai.resources.beta import AsyncAssistants
 from openai.types.beta import Assistant
-from pydantic import ValidationError
 
 from utils.openai_utils import client
 
@@ -14,16 +17,19 @@ ASSISTANT_NAME = "My Assistant"
 logger = logging.getLogger("chainlit")
 
 
+ASSISTANT_CONFIG_PATH = 'assistant.yaml'
+
+
+def load_or_create_file(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            return yaml.safe_load(file)
+    else:
+        with open(filename, 'w') as file:
+            return {}
+
+
 def load_json(filename: str) -> Dict[str, Any]:
-    """
-        Loads a JSON object from a file.
-
-        Args:
-            filename: The name of the file to load the JSON from.
-
-        Returns:
-            The JSON object loaded from the file if it exists, otherwise an empty dictionary.
-        """
     try:
         with open(filename, "r") as file:
             return json.load(file)
@@ -88,10 +94,44 @@ async def retrieve_assistant(assistant_id: str) -> Assistant:
         raise
 
 
-def main():
-    result = load_yaml('liminal_flow.yml')
-    pass
+async def get_assistants():
+    config_path = ASSISTANT_CONFIG_PATH
+    load_or_create_file(config_path)
+    assistants: AsyncCursorPage[Assistant] = await AsyncAssistants(client).list()
+
+    assistants_dict = {}
+    assistant: Assistant
+    for assistant in assistants.data:
+        assistants_dict[assistant.id] = assistant.dict()
+
+    with open(config_path, 'w') as f:
+        yaml.dump(assistants_dict, f)
+
+    return assistants_dict
+
+
+async def create_assistant(config) -> Assistant:
+    return await client.beta.assistants.create(
+        **config
+    )
+
+
+async def main():
+    # Import our existing config file
+    results = load_yaml(ASSISTANT_CONFIG_PATH)
+    if not results:
+        # No config, load from OAI
+        results = await get_assistants()
+    if not results:
+        # No agents, load template
+        results = load_yaml('liminal_flow.yml')
+        for i in results.keys():
+            assistant = results[i]
+            if not assistant.id:
+                results[i] = await create_assistant(assistant.to_dict())
+        with open(ASSISTANT_CONFIG_PATH, 'w') as f:
+            yaml.dump(results, f)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
