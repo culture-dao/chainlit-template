@@ -6,15 +6,12 @@ from literalai import Thread
 from chainlit_utils import process_files
 from chainlit.types import ThreadDict
 
-from cl_events.oauth_callback import oauth_callback_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.step import step_logic
-from utils.openai_utils import initialize_openai_client
+from utils.openai_utils import client
 
 logging.basicConfig(level=logging.INFO)
-
-client = initialize_openai_client()
 
 logger = logging.getLogger("chainlit")
 
