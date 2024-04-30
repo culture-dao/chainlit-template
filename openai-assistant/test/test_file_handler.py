@@ -1,14 +1,13 @@
 import unittest
+from typing import List, Iterable
 from unittest.mock import MagicMock
 
-from openai.types.beta import FileSearchTool
+from openai.types import FileObject
 
-from utils.openai_utils import initialize_openai_client
 from utils.file_handler import (
-    list_assistant_files,
+    list_org_files,
     file_comparison,
     list_client_files,
-    list_assistants,
     check_duplicate_files_usage
 )
 
@@ -18,10 +17,13 @@ class TestFileHandler(unittest.IsolatedAsyncioTestCase):
         self.assistant_id = "fake_assistant_id"
         self.client = MagicMock()
 
-    async def test_list_assistant_files(self):
-        self.client.beta.assistants.files.list.return_value = MagicMock(data=[{"id": "file_1"}, {"id": "file_2"}])
-        files = list_assistant_files(self.client, self.assistant_id)
-        self.assertEqual(len(files), 2, "Should return two files")
+    from collections.abc import Iterable
+
+    async def test_list_org_files(self):
+        files: List[FileObject] = await list_org_files(self.assistant_id)
+        self.assertTrue(isinstance(files, Iterable), "files should be an iterable")
+        self.assertTrue(all(isinstance(item, FileObject) for item in files),
+                        "all items in files should be of type FileObject")
 
     async def test_list_client_files(self):
         self.client.files.list.return_value = MagicMock(data=[{"filename": "file1.txt"}, {"filename": "file2.txt"}])
@@ -72,7 +74,6 @@ class TestFileHandler(unittest.IsolatedAsyncioTestCase):
         unused_files = check_duplicate_files_usage(duplicates, assistant_file_map)
 
         self.assertEqual(unused_files, expected_unused_files, "The function should identify unused file IDs correctly.")
-
 
 
 if __name__ == '__main__':

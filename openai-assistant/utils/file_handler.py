@@ -4,17 +4,38 @@ import logging
 import os
 import sys
 
-from utils.openai_utils import initialize_openai_client
+from openai._base_client import AsyncPaginator
+from openai.pagination import AsyncPage
+from openai.types import FileObject
+
+from utils.openai_utils import client
+
+import asyncio
+from typing import List, TypeVar, Generic, Any
+
+T = TypeVar('T')
+
+
+class AsyncPaginatorHelper(Generic[T]):
+    @staticmethod
+    async def collect_all_items(paginator: AsyncPage[FileObject]) -> List[T]:
+        items = []
+        async for item in paginator:
+            items.append(item)
+        return items
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 logging.getLogger("httpx").setLevel("WARNING")
 
 
-def list_assistant_files(client, assistant_id):
+async def list_org_files(assistant_id) -> List[FileObject]:
     """Lists all the files for a specific assistant"""
     try:
-        files = client.beta.assistants.files.list(assistant_id=assistant_id)
-        return files.data
+        files: AsyncPage[FileObject] = await client.files.list()
+        return await AsyncPaginatorHelper.collect_all_items(files)
+
+
     except Exception as e:
         logging.error(f"Failed to list assistant files due to an error: {e}")
         raise Exception("Failed to assistant list files") from e
@@ -79,10 +100,10 @@ def retrieve_file(client, file_id):
         raise Exception(f"Failed to retrieve file {file_id}") from e
 
 
-def write_and_list_file_information(assistant_id, client):
+def write_and_list_file_information(assistant_id):
     """Lists the files for an assistant and writes them to a JSON"""
     try:
-        files = list_assistant_files(client, assistant_id)
+        files = list_org_files(assistant_id)
         if files:
             formatted_information = format_file_information(client, files)
             append_to_json_file("file_data.json", formatted_information)
@@ -200,10 +221,10 @@ def delete_file(client, file_id):
 
 
 async def main():
-    test_assistant_id = "asst_UdBAhFZsmVSJCJ8THgCpA1tK"
-    client = initialize_openai_client()
 
-    openai_files = write_and_list_file_information(test_assistant_id, client)
+    test_assistant_id = os.getenv('ASSISTANT_ID')
+
+    openai_files = write_and_list_file_information(test_assistant_id)
     local_files = get_local_files("../app/public")
 
     logging.info(f'Local Files: {local_files}')
@@ -211,7 +232,7 @@ async def main():
 
     file_comparison(local_files, openai_files)
 
-    assistants = list_assistants(client)
+    assistants = await list_assistants(client)
 
     assistants_with_files = map_assistants(client, assistants)
 

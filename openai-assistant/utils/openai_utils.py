@@ -97,7 +97,6 @@ def get_file_map(file='assistants.json'):
 
 
 if __name__ == "__main__":
-    client = openai.AsyncClient()
     buggy_thread = 'thread_id'
     messages = asyncio.run(get_thread_messages(client, buggy_thread))
     # Save your message as a fixture, whatever
