@@ -138,13 +138,13 @@ def load_json(filename: str) -> Dict[str, Any]:
         return {}
 
 
-def load_yaml(filename: str, type: Type[BaseModel]) -> Dict[str, Any]:
+def load_yaml(filename: str, model: Type[BaseModel]) -> Dict[str, Any]:
     try:
         with open(filename, "r") as file:
             data = yaml.safe_load(file)
             # Check if data is a dictionary and if so, create Assistant instances
             if isinstance(data, dict):
-                return {key: type.model_construct(**value) for key, value in data.items()}
+                return {key: model.model_construct(**value) for key, value in data.items()}
     except FileNotFoundError:
         logger.error(f"{filename} not found.")
         return {}
