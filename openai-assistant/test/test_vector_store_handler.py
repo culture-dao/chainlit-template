@@ -31,8 +31,6 @@ class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
 
     # OLD SHIT
 
-
-
     async def test_vectors_stores_files(self):
         files = await vector_stores_handler.vector_stores_files()
         self.assertEqual(len(files), 2, "Should return two files")

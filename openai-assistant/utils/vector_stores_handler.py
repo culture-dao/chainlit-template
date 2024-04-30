@@ -4,14 +4,17 @@ import logging
 import os
 import sys
 
+import yaml
 from openai.pagination import AsyncPage
 from openai.types import FileObject
 from openai.types.beta import VectorStore, Assistant
 
 from utils import files_handler, assistant_handler
-from utils.openai_utils import client, AsyncPaginatorHelper
+from utils.openai_utils import client, AsyncPaginatorHelper, load_yaml
 
 from typing import List
+
+VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
@@ -44,6 +47,15 @@ async def vector_stores_retrieve(vector_store_id: str) -> VectorStore:
         logging.error(f"Failed to retrieve vector_stores due to an error: {e}")
         raise Exception("vector_stores_retrieve failed") from e
 
+
+async def main():
+    results = load_yaml(VECTOR_STORES_CONFIG_PATH, VectorStore)
+    if not results:
+        results = await vector_stores_list()
+    if not results:
+        vector_store = await vector_stores_create()
+        with open(VECTOR_STORES_CONFIG_PATH, 'w') as f:
+            yaml.dump(vector_store, f)
 
 # OLD SHIT HERE
 
@@ -85,16 +97,6 @@ def append_to_json_file(file_path, new_data):
 
     with open(file_path, 'w') as file:
         json.dump(existing_data, file, indent=4)
-
-
-async def retrieve_file(file_id):
-    """Retrieves a specific file from OpenAI"""
-    try:
-        file = await client.files.retrieve(file_id)
-        return file
-    except Exception as e:
-        logging.error(f"Failed to retrieve file {file_id} due to an error: {e}")
-        raise Exception(f"Failed to retrieve file {file_id}") from e
 
 
 async def write_and_list_file_information(assistant_id):
@@ -213,7 +215,7 @@ def map_assistants(assistants):
     return assistant_data
 
 
-async def main():
+async def old():
     """
     This was originally meant to sync files, but no longer works since we move to beta v2
     """
