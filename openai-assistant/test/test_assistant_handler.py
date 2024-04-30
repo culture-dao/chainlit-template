@@ -2,26 +2,25 @@ import unittest
 
 import chainlit as cl
 import openai
-from dotenv import load_dotenv
 
-from utils.create_assistant import retrieve_assistant
+from utils import assistant_handler
 from chainlit_utils import DictToObject
 
-load_dotenv()
+from utils.openai_utils import client
 
 
-class TestAssistant(unittest.IsolatedAsyncioTestCase):
+class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
-        self.client = openai.AsyncClient()
+        self.client = client
 
     async def test_retrieve_assistant_valid(self):
-        result = await retrieve_assistant("asst_GPa9ziLBlAg4gmZXCq6L5nF9")
+        result = await assistant_handler.retrieve_assistant("asst_GPa9ziLBlAg4gmZXCq6L5nF9")
         assert result
 
     async def test_retrieve_assistant_invalid(self):
         with self.assertRaises(Exception):
-            await retrieve_assistant("nonsense")
+            await assistant_handler.retrieve_assistant("nonsense")
 
 
 class TestRuns(unittest.IsolatedAsyncioTestCase):
@@ -95,7 +94,7 @@ class TestRuns(unittest.IsolatedAsyncioTestCase):
 
             await cl.sleep(5)
 
-            if run.status is "completed" and thread_message.content is None:
+            if run.status == "completed" and thread_message.content is None:
                 thread_message.content = "An error occurred, please try again later or contact support"
                 print(thread_message)
 
