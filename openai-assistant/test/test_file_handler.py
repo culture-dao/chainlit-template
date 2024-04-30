@@ -3,13 +3,9 @@ from typing import List, Iterable
 from unittest.mock import MagicMock
 
 from openai.types import FileObject
+from openai.types.beta import VectorStore
 
-from utils.file_handler import (
-    list_org_files,
-    file_comparison,
-    list_client_files,
-    check_duplicate_files_usage
-)
+from utils import file_handler
 
 
 class TestFileHandler(unittest.IsolatedAsyncioTestCase):
@@ -19,11 +15,17 @@ class TestFileHandler(unittest.IsolatedAsyncioTestCase):
 
     from collections.abc import Iterable
 
-    async def test_list_org_files(self):
-        files: List[FileObject] = await list_org_files(self.assistant_id)
-        self.assertTrue(isinstance(files, Iterable), "files should be an iterable")
+    async def test_files_list(self):
+        files: List[FileObject] = await file_handler.files_list()
+        self.assertTrue(isinstance(files, Iterable), "ojb should be an iterable")
         self.assertTrue(all(isinstance(item, FileObject) for item in files),
                         "all items in files should be of type FileObject")
+
+    async def test_vector_stores_list(self):
+        vector_stores: List[VectorStore] = await file_handler.vector_stores_list()
+        self.assertTrue(isinstance(vector_stores, Iterable), "obj should be an iterable")
+        self.assertTrue(all(isinstance(item, VectorStore) for item in vector_stores),
+                        "all items in files should be of type VectorStore")
 
     async def test_list_client_files(self):
         self.client.files.list.return_value = MagicMock(data=[{"filename": "file1.txt"}, {"filename": "file2.txt"}])

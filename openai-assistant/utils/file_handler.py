@@ -4,9 +4,9 @@ import logging
 import os
 import sys
 
-from openai._base_client import AsyncPaginator
 from openai.pagination import AsyncPage
 from openai.types import FileObject
+from openai.types.beta import VectorStore
 
 from utils.openai_utils import client
 
@@ -29,16 +29,28 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logging.getLogger("httpx").setLevel("WARNING")
 
 
-async def list_org_files(assistant_id) -> List[FileObject]:
-    """Lists all the files for a specific assistant"""
+async def files_list() -> List[FileObject]:
+    """Lists all the files in our org"""
     try:
         files: AsyncPage[FileObject] = await client.files.list()
         return await AsyncPaginatorHelper.collect_all_items(files)
 
+    except Exception as e:
+        logging.error(f"Failed to list files due to an error: {e}")
+        raise Exception("Failed to list files") from e
+
+
+async def vector_stores_list() -> List[VectorStore]:
+    """Lists all the vector_stores for a specific assistant"""
+    try:
+        vector_stores: AsyncPage[FileObject] = await client.beta.vector_stores.list()
+        return await AsyncPaginatorHelper.collect_all_items(vector_stores)
 
     except Exception as e:
-        logging.error(f"Failed to list assistant files due to an error: {e}")
-        raise Exception("Failed to assistant list files") from e
+        logging.error(f"Failed to list vector_stores due to an error: {e}")
+        raise Exception("vector_stores_list failed") from e
+    
+
 
 
 def list_client_files(client):
@@ -103,7 +115,7 @@ def retrieve_file(client, file_id):
 def write_and_list_file_information(assistant_id):
     """Lists the files for an assistant and writes them to a JSON"""
     try:
-        files = list_org_files(assistant_id)
+        files = files_list(assistant_id)
         if files:
             formatted_information = format_file_information(client, files)
             append_to_json_file("file_data.json", formatted_information)
