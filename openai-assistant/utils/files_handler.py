@@ -26,3 +26,6 @@ async def files_delete(file_id):
     result: FileDeleted = await client.files.delete(file_id)
     assert result.deleted
 
+
+async def files_retrieve(file_id: str) -> FileObject:
+    return await client.files.retrieve(file_id)
