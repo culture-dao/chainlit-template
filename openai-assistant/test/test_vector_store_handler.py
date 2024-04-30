@@ -5,24 +5,18 @@ from unittest.mock import MagicMock
 from openai.types import FileObject
 from openai.types.beta import VectorStore
 
-from utils import file_handler
+from utils import vector_stores_handler
 
 
-class TestFileHandler(unittest.IsolatedAsyncioTestCase):
+class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.assistant_id = "fake_assistant_id"
         self.client = MagicMock()
 
     from collections.abc import Iterable
 
-    async def test_files_list(self):
-        files: List[FileObject] = await file_handler.files_list()
-        self.assertTrue(isinstance(files, Iterable), "ojb should be an iterable")
-        self.assertTrue(all(isinstance(item, FileObject) for item in files),
-                        "all items in files should be of type FileObject")
-
     async def test_vector_stores_list(self):
-        vector_stores: List[VectorStore] = await file_handler.vector_stores_list()
+        vector_stores: List[VectorStore] = await vector_stores_handler.vector_stores_list()
 
         self.assertTrue(isinstance(vector_stores, Iterable), "obj should be an iterable")
         self.assertTrue(all(isinstance(item, VectorStore) for item in vector_stores),
@@ -30,11 +24,11 @@ class TestFileHandler(unittest.IsolatedAsyncioTestCase):
 
     @unittest.skip("Don't make stores if we aren't going to clean them up")
     async def test_vector_stores_create(self):
-        store: VectorStore = await file_handler.vector_stores_create()
+        store: VectorStore = await vector_stores_handler.vector_stores_create()
         self.assertTrue(isinstance(store, VectorStore), "No VectorStore returned")
 
     async def test_vectors_stores_files(self):
-        files = await file_handler.vector_stores_files()
+        files = await vector_stores_handler.vector_stores_files()
         self.assertEqual(len(files), 2, "Should return two files")
 
     async def test_no_missing_or_extra_files(self):

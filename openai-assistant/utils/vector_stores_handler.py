@@ -21,7 +21,7 @@ logging.getLogger("httpx").setLevel("WARNING")
 async def vector_stores_list() -> List[VectorStore]:
     """Lists all the vector_stores for a specific assistant"""
     try:
-        vector_stores: AsyncPage[FileObject] = await client.beta.vector_stores.list()
+        vector_stores: AsyncPage[VectorStore] = await client.beta.vector_stores.files.list()
         return await AsyncPaginatorHelper.collect_all_items(vector_stores)
 
     except Exception as e:
@@ -37,21 +37,14 @@ async def vector_stores_create() -> VectorStore:
         raise Exception("vector_stores_create failed") from e
 
 
-def list_client_files(client):
-    """Lists all the files from the OpenAI client"""
-    try:
-        files = client.files.list()
-        return files.data
-    except Exception as e:
-        logging.error(f"Failed to list client files due to an error: {e}")
-        raise Exception("Failed to client list files") from e
+# OLD SHIT HERE
 
 
-def format_file_information(client, files):
+async def format_file_information(files: List[FileObject]):
     """Retrieves the metadata of a file from OpenAI and stores it in a dictionary"""
     file_dict = []
+
     for file in files:
-        file = retrieve_file(client, file.id)
         file_dict.append({"id": file.id, "created_at": file.created_at, "name": file.filename})
     return file_dict
 
@@ -86,22 +79,23 @@ def append_to_json_file(file_path, new_data):
         json.dump(existing_data, file, indent=4)
 
 
-def retrieve_file(file_id):
+async def retrieve_file(file_id):
     """Retrieves a specific file from OpenAI"""
     try:
-        file = client.files.retrieve(file_id)
+        file = await client.files.retrieve(file_id)
         return file
     except Exception as e:
         logging.error(f"Failed to retrieve file {file_id} due to an error: {e}")
         raise Exception(f"Failed to retrieve file {file_id}") from e
 
 
-def write_and_list_file_information(assistant_id):
+async def write_and_list_file_information(assistant_id):
     """Lists the files for an assistant and writes them to a JSON"""
     try:
-        files = files_list()
+        files: List[FileObject]
+        files = await files_handler.files_list()
         if files:
-            formatted_information = format_file_information(client, files)
+            formatted_information = await format_file_information(files)
             append_to_json_file("file_data.json", formatted_information)
             return formatted_information
     except ValueError as e:
@@ -147,10 +141,10 @@ def file_comparison(oai_files, local_files):
             logging.info(f"Missing file locally: {file_name}")
 
 
-def find_duplicate_files(client):
+async def find_duplicate_files():
     """Finds duplicates files in the OpenAI client"""
     try:
-        files_data = files_list()
+        files_data = await files_handler.files_list()
 
         files_by_name = {}
 
@@ -192,17 +186,17 @@ def check_duplicate_files_usage(duplicates, assistant_file_map):
     return unused_files
 
 
-async def list_assistants(client):
+async def list_assistants():
     """List all the assistants"""
     assistants = await client.beta.assistants.list()
     return assistants.data
 
 
-def map_assistants(client, assistants):
+def map_assistants(assistants):
     assistant_data = []
     for assistant in assistants:
         # This fixes the files for PROD not showing up.
-        assistant = client.beta.assistants.retrieve(assistant.id)
+        assistant = assistant_retrieve(assistant.id)
         # Since we want the file ids, if they don't have any we don't need them.
         if len(assistant.file_ids) == 0:
             continue
@@ -212,10 +206,12 @@ def map_assistants(client, assistants):
 
 
 async def main():
-
+    """
+    This was originally meant to sync files, but no longer works since we move to beta v2
+    """
     test_assistant_id = os.getenv('ASSISTANT_ID')
 
-    openai_files = write_and_list_file_information(test_assistant_id)
+    openai_files = await write_and_list_file_information(test_assistant_id)
     local_files = get_local_files("../app/public")
 
     logging.info(f'Local Files: {local_files}')
@@ -223,24 +219,24 @@ async def main():
 
     file_comparison(local_files, openai_files)
 
-    assistants = await assistants_list()
-
-    assistants_with_files = map_assistants(client, assistants)
-
-    duplicate_files = find_duplicate_files(client)
-    output_duplicates(duplicate_files)
-
-    unused_files = check_duplicate_files_usage(duplicate_files, assistants_with_files)
-
-    logging.info(f'{len(unused_files)} unused files: {unused_files}')
-
-    if len(sys.argv) >= 2 and sys.argv[1] == "delete":
-        for file_id in unused_files:
-            try:
-                await files_handler.files_delete(file_id)
-                logging.info(f"Successfully deleted file ID: {file_id}")
-            except Exception as e:
-                logging.error(f"Error deleting file ID {file_id}: {e}")
+    assistants: List[Assistant] = await assistant_handler.assistants_list()
+    # Breaks down here, assistants have file stores and that's what we need to look at.
+    # assistants_with_files = map_assistants(assistants)
+    #
+    # duplicate_files = await find_duplicate_files()
+    # output_duplicates(duplicate_files)
+    #
+    # unused_files = check_duplicate_files_usage(duplicate_files, assistants_with_files)
+    #
+    # logging.info(f'{len(unused_files)} unused files: {unused_files}')
+    #
+    # if len(sys.argv) >= 2 and sys.argv[1] == "delete":
+    #     for file_id in unused_files:
+    #         try:
+    #             await files_handler.files_delete(file_id)
+    #             logging.info(f"Successfully deleted file ID: {file_id}")
+    #         except Exception as e:
+    #             logging.error(f"Error deleting file ID {file_id}: {e}")
 
 
 if __name__ == "__main__":
