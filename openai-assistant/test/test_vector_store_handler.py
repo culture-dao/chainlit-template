@@ -23,13 +23,18 @@ class TestFileHandler(unittest.IsolatedAsyncioTestCase):
 
     async def test_vector_stores_list(self):
         vector_stores: List[VectorStore] = await file_handler.vector_stores_list()
+
         self.assertTrue(isinstance(vector_stores, Iterable), "obj should be an iterable")
         self.assertTrue(all(isinstance(item, VectorStore) for item in vector_stores),
                         "all items in files should be of type VectorStore")
 
-    async def test_list_client_files(self):
-        self.client.files.list.return_value = MagicMock(data=[{"filename": "file1.txt"}, {"filename": "file2.txt"}])
-        files = list_client_files(self.client)
+    @unittest.skip("Don't make stores if we aren't going to clean them up")
+    async def test_vector_stores_create(self):
+        store: VectorStore = await file_handler.vector_stores_create()
+        self.assertTrue(isinstance(store, VectorStore), "No VectorStore returned")
+
+    async def test_vectors_stores_files(self):
+        files = await file_handler.vector_stores_files()
         self.assertEqual(len(files), 2, "Should return two files")
 
     async def test_no_missing_or_extra_files(self):

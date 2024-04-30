@@ -17,10 +17,14 @@ T = TypeVar('T')
 
 
 class AsyncPaginatorHelper(Generic[T]):
+    """
+    AsyncPage objects are limited to 100 results, 20 default, so we'll need pagination handling on the 'list' functions.
+    """
     @staticmethod
     async def collect_all_items(paginator: AsyncPage[FileObject]) -> List[T]:
         items = []
         async for item in paginator:
+            logging.info(item)
             items.append(item)
         return items
 
@@ -49,9 +53,18 @@ async def vector_stores_list() -> List[VectorStore]:
     except Exception as e:
         logging.error(f"Failed to list vector_stores due to an error: {e}")
         raise Exception("vector_stores_list failed") from e
-    
 
 
+async def vector_stores_create() -> VectorStore:
+    try:
+        return await client.beta.vector_stores.create()
+    except Exception as e:
+        logging.error(f"Failed to create vector_stores due to an error: {e}")
+        raise Exception("vector_stores_create failed") from e
+
+
+async def vector_stores_files():
+    return await client.beta.vector_stores.files()
 
 def list_client_files(client):
     """Lists all the files from the OpenAI client"""
