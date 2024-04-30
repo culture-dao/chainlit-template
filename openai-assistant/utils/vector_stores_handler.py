@@ -18,10 +18,18 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logging.getLogger("httpx").setLevel("WARNING")
 
 
+async def vector_stores_create() -> VectorStore:
+    try:
+        return await client.beta.vector_stores.create()
+    except Exception as e:
+        logging.error(f"Failed to create vector_stores due to an error: {e}")
+        raise Exception("vector_stores_create failed") from e
+
+
 async def vector_stores_list() -> List[VectorStore]:
     """Lists all the vector_stores for a specific assistant"""
     try:
-        vector_stores: AsyncPage[VectorStore] = await client.beta.vector_stores.files.list()
+        vector_stores: AsyncPage[VectorStore] = await client.beta.vector_stores.list()
         return await AsyncPaginatorHelper.collect_all_items(vector_stores)
 
     except Exception as e:
@@ -29,12 +37,12 @@ async def vector_stores_list() -> List[VectorStore]:
         raise Exception("vector_stores_list failed") from e
 
 
-async def vector_stores_create() -> VectorStore:
+async def vector_stores_retrieve(vector_store_id: str) -> VectorStore:
     try:
-        return await client.beta.vector_stores.create()
+        return await client.beta.vector_stores.retrieve(vector_store_id)
     except Exception as e:
-        logging.error(f"Failed to create vector_stores due to an error: {e}")
-        raise Exception("vector_stores_create failed") from e
+        logging.error(f"Failed to retrieve vector_stores due to an error: {e}")
+        raise Exception("vector_stores_retrieve failed") from e
 
 
 # OLD SHIT HERE

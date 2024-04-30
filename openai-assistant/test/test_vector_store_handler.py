@@ -2,7 +2,6 @@ import unittest
 from typing import List, Iterable
 from unittest.mock import MagicMock
 
-from openai.types import FileObject
 from openai.types.beta import VectorStore
 
 from utils import vector_stores_handler
@@ -10,10 +9,14 @@ from utils import vector_stores_handler
 
 class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
+        self.vector_id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
         self.assistant_id = "fake_assistant_id"
         self.client = MagicMock()
 
-    from collections.abc import Iterable
+    @unittest.skip("Don't make stores if we aren't going to clean them up")
+    async def test_vector_stores_create(self):
+        store: VectorStore = await vector_stores_handler.vector_stores_create()
+        self.assertTrue(isinstance(store, VectorStore), "No VectorStore returned")
 
     async def test_vector_stores_list(self):
         vector_stores: List[VectorStore] = await vector_stores_handler.vector_stores_list()
@@ -22,10 +25,13 @@ class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(isinstance(item, VectorStore) for item in vector_stores),
                         "all items in files should be of type VectorStore")
 
-    @unittest.skip("Don't make stores if we aren't going to clean them up")
-    async def test_vector_stores_create(self):
-        store: VectorStore = await vector_stores_handler.vector_stores_create()
-        self.assertTrue(isinstance(store, VectorStore), "No VectorStore returned")
+    async def test_vector_store_retrieve(self):
+        store: VectorStore = await vector_stores_handler.vector_stores_retrieve(self.vector_id)
+        self.assertTrue(isinstance(store, VectorStore))
+
+    # OLD SHIT
+
+
 
     async def test_vectors_stores_files(self):
         files = await vector_stores_handler.vector_stores_files()
