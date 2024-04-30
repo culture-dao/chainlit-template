@@ -1,16 +1,14 @@
 import asyncio
-import json
 import logging
-import os
 
-from typing import Dict, Any, Optional
+
+from typing import Optional, List
 
 import yaml
 from openai.pagination import AsyncCursorPage
-from openai.resources.beta import AsyncAssistants
 from openai.types.beta import Assistant
 
-from utils.openai_utils import client, load_json, load_or_create_file, load_yaml
+from utils.openai_utils import client, load_json, load_yaml, AsyncPaginatorHelper, list_to_dict
 
 ASSISTANT_NAME = "My Assistant"
 
@@ -62,20 +60,9 @@ async def assistant_retrieve(assistant_id: str) -> Assistant:
         raise
 
 
-async def assistants_list():
-    config_path = ASSISTANT_CONFIG_PATH
-    load_or_create_file(config_path)
-    assistants: AsyncCursorPage[Assistant] = await AsyncAssistants(client).list()
-
-    assistants_dict = {}
-    assistant: Assistant
-    for assistant in assistants.data:
-        assistants_dict[assistant.id] = assistant.dict()
-
-    with open(config_path, 'w') as f:
-        yaml.dump(assistants_dict, f)
-
-    return assistants_dict
+async def assistants_list() -> List[Assistant]:
+    assistants: AsyncCursorPage[Assistant] = await client.beta.assistants.list()
+    return await AsyncPaginatorHelper.collect_all_items(assistants)
 
 
 async def assistants_create(config) -> Assistant:
@@ -89,14 +76,15 @@ async def main():
     results = load_yaml(ASSISTANT_CONFIG_PATH, Assistant)
     if not results:
         # No config, load from OAI
-        results = await assistants_list()
-    if not results:
-        # No agents, load template
-        results = load_yaml('liminal_flow.yml')
-        for i in results.keys():
-            assistant = results[i]
-            if not assistant.id:
-                results[i] = await assistants_create(assistant.to_dict())
+        assistants = await assistants_list()
+        results = list_to_dict(assistants)
+        if not results:
+            # No agents, load template
+            results = load_yaml('liminal_flow.yml')
+            for i in results.keys():
+                assistant = results[i]
+                if not assistant.id:
+                    results[i] = await assistants_create(assistant.to_dict())
         with open(ASSISTANT_CONFIG_PATH, 'w') as f:
             yaml.dump(results, f)
 

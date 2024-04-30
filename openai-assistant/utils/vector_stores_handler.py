@@ -5,12 +5,12 @@ import os
 import sys
 
 import yaml
-from openai.pagination import AsyncPage
+from openai.pagination import AsyncPage, AsyncCursorPage
 from openai.types import FileObject
 from openai.types.beta import VectorStore, Assistant
 
 from utils import files_handler, assistant_handler
-from utils.openai_utils import client, AsyncPaginatorHelper, load_yaml
+from utils.openai_utils import client, AsyncPaginatorHelper, load_yaml, list_to_dict
 
 from typing import List
 
@@ -32,7 +32,7 @@ async def vector_stores_create() -> VectorStore:
 async def vector_stores_list() -> List[VectorStore]:
     """Lists all the vector_stores for a specific assistant"""
     try:
-        vector_stores: AsyncPage[VectorStore] = await client.beta.vector_stores.list()
+        vector_stores: AsyncCursorPage[VectorStore] = await client.beta.vector_stores.list()
         return await AsyncPaginatorHelper.collect_all_items(vector_stores)
 
     except Exception as e:
@@ -51,11 +51,12 @@ async def vector_stores_retrieve(vector_store_id: str) -> VectorStore:
 async def main():
     results = load_yaml(VECTOR_STORES_CONFIG_PATH, VectorStore)
     if not results:
-        results = await vector_stores_list()
+        vector_stores = await vector_stores_list()
+        results = list_to_dict(vector_stores)
         if not results:
             results = await vector_stores_create()
-        with open(VECTOR_STORES_CONFIG_PATH, 'w') as f:
-            yaml.dump(results, f)
+    with open(VECTOR_STORES_CONFIG_PATH, 'w') as f:
+        yaml.dump(results, f)
 
 # OLD SHIT HERE
 

@@ -138,16 +138,30 @@ def load_json(filename: str) -> Dict[str, Any]:
         return {}
 
 
-def load_yaml(filename: str, model: Type[BaseModel]) -> Dict[str, Any]:
+def load_yaml(filename: str, model: Type[BaseModel]) -> Dict[str, BaseModel]:
+    """
+    Originally used to import Assistant models from yaml config
+    There is no validation on the objects
+    """
     try:
         with open(filename, "r") as file:
             data = yaml.safe_load(file)
-            # Check if data is a dictionary and if so, create Assistant instances
+            # Check if data is a dictionary and if so, create Type instances
             if isinstance(data, dict):
                 return {key: model.model_construct(**value) for key, value in data.items()}
     except FileNotFoundError:
         logger.error(f"{filename} not found.")
         return {}
+
+
+def list_to_dict(_list):
+
+    _dict = {}
+
+    for obj in _list:
+        _dict[obj.id] = obj.dict()
+
+    return _dict
 
 
 if __name__ == "__main__":

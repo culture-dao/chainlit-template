@@ -1,8 +1,9 @@
 import os
 import unittest
+from typing import Iterable, List
 
 import chainlit as cl
-import openai
+from openai.types.beta import Assistant
 
 from utils import assistant_handler
 from chainlit_utils import DictToObject
@@ -24,6 +25,12 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
     async def test_assistant_retrieve_invalid(self):
         with self.assertRaises(Exception):
             await assistant_handler.assistant_retrieve("nonsense")
+
+    async def test_assistant_list(self):
+        assistants: List[Assistant] = await assistant_handler.assistants_list()
+        self.assertTrue(isinstance(assistants, Iterable), "obj should be an iterable")
+        self.assertTrue(all(isinstance(item, Assistant) for item in assistants),
+                        "all items in files should be of type Assistant")
 
 
 @unittest.skip("Needs valid thread and big refactor")
