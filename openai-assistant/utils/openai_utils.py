@@ -1,12 +1,32 @@
 import asyncio
 import json
+import logging
 import os
+from typing import TypeVar, Generic, List
 
 import openai
 from chainlit.logger import logger
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+from openai.pagination import AsyncPage
 from openai.types.beta import Thread
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
+
+T = TypeVar('T')
+
+
+class AsyncPaginatorHelper(Generic[T]):
+    """
+    AsyncPage objects are limited to 100 results, 20 default, so we'll need pagination handling on the 'list' functions.
+    """
+    @staticmethod
+    async def collect_all_items(paginator: AsyncPage[T]) -> List[T]:
+        items = []
+        async for item in paginator:
+            logging.info(item)
+            items.append(item)
+        return items
 
 
 def initialize_openai_client() -> AsyncOpenAI:

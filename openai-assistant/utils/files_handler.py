@@ -5,7 +5,7 @@ from openai.pagination import AsyncPage
 from openai.types import FileObject, FileDeleted
 
 from utils.openai_utils import client
-from utils.vector_store_handler import AsyncPaginatorHelper
+from utils.openai_utils import AsyncPaginatorHelper
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 logging.getLogger("httpx").setLevel("WARNING")
