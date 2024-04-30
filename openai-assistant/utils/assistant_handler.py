@@ -10,7 +10,7 @@ from openai.pagination import AsyncCursorPage
 from openai.resources.beta import AsyncAssistants
 from openai.types.beta import Assistant
 
-from utils.openai_utils import client
+from utils.openai_utils import client, load_json, load_or_create_file, load_yaml
 
 ASSISTANT_NAME = "My Assistant"
 
@@ -18,36 +18,6 @@ logger = logging.getLogger("chainlit")
 
 
 ASSISTANT_CONFIG_PATH = 'assistant.yaml'
-
-
-def load_or_create_file(filename):
-    if os.path.exists(filename):
-        with open(filename, 'r') as file:
-            return yaml.safe_load(file)
-    else:
-        with open(filename, 'w') as file:
-            return {}
-
-
-def load_json(filename: str) -> Dict[str, Any]:
-    try:
-        with open(filename, "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        logger.error(f"{filename} not found.")
-        return {}
-
-
-def load_yaml(filename: str) -> Dict[str, Any]:
-    try:
-        with open(filename, "r") as file:
-            data = yaml.safe_load(file)
-            # Check if data is a dictionary and if so, create Assistant instances
-            if isinstance(data, dict):
-                return {key: Assistant.model_construct(**value) for key, value in data.items()}
-    except FileNotFoundError:
-        logger.error(f"{filename} not found.")
-        return {}
 
 
 def get_assistant_id(assistant_name: str = ASSISTANT_NAME) -> Optional[str]:
@@ -116,7 +86,7 @@ async def assistants_create(config) -> Assistant:
 
 async def main():
     # Import our existing config file
-    results = load_yaml(ASSISTANT_CONFIG_PATH)
+    results = load_yaml(ASSISTANT_CONFIG_PATH, Assistant)
     if not results:
         # No config, load from OAI
         results = await assistants_list()

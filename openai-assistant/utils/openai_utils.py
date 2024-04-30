@@ -2,14 +2,16 @@ import asyncio
 import json
 import logging
 import os
-from typing import TypeVar, Generic, List
+from typing import TypeVar, Generic, List, Dict, Any, Type
 
 import openai
+import yaml
 from chainlit.logger import logger
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from openai.pagination import AsyncPage
 from openai.types.beta import Thread
+from pydantic import BaseModel
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 
@@ -68,6 +70,7 @@ def get_playground_url(assistant_id, thread_id) -> None:
 
 
 async def get_thread_messages(client: AsyncOpenAI, thread_id) -> Thread:
+    # TODO: Move to thread handler, get rid of client
     """
     Wrapper function for OAI message retrieval
     """
@@ -80,8 +83,9 @@ async def get_thread_messages(client: AsyncOpenAI, thread_id) -> Thread:
 
 
 def update_file_map(client, file='assistants.json'):
+    # Broken
     file_map = get_file_map(file)
-    assistant_id = file_map.get("AFGE Virtual Steward")
+    assistant_id = file_map.get("Assistant name")
 
     if assistant_id is not None:
         assistant = client.beta.assistants.retrieve(assistant_id)
@@ -91,7 +95,7 @@ def update_file_map(client, file='assistants.json'):
             for filename in files_in_dir:
                 file_path_mapping[filename] = os.path.join(root, filename)
 
-        updated_file_map = {"AFGE Virtual Steward": assistant_id}
+        updated_file_map = {"Assistant name": assistant_id}
         for file_id in assistant.file_ids:
             if file_id not in file_map:
                 file_details = client.files.retrieve(file_id)
@@ -104,7 +108,7 @@ def update_file_map(client, file='assistants.json'):
         with open(file, 'w') as f:
             json.dump(updated_file_map, f, indent=4)
     else:
-        logger.info(f"Key 'AFGE Virtual Steward' not found in {file}.")
+        logger.info(f"Key 'Assistant name' not found in {file}.")
 
 
 def get_file_map(file='assistants.json'):
@@ -113,6 +117,36 @@ def get_file_map(file='assistants.json'):
             return json.load(f)
     else:
         logger.info(f"No {file} found..")
+        return {}
+
+
+def load_or_create_file(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            return yaml.safe_load(file)
+    else:
+        with open(filename, 'w') as file:
+            return {}
+
+
+def load_json(filename: str) -> Dict[str, Any]:
+    try:
+        with open(filename, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.error(f"{filename} not found.")
+        return {}
+
+
+def load_yaml(filename: str, type: Type[BaseModel]) -> Dict[str, Any]:
+    try:
+        with open(filename, "r") as file:
+            data = yaml.safe_load(file)
+            # Check if data is a dictionary and if so, create Assistant instances
+            if isinstance(data, dict):
+                return {key: type.model_construct(**value) for key, value in data.items()}
+    except FileNotFoundError:
+        logger.error(f"{filename} not found.")
         return {}
 
 
