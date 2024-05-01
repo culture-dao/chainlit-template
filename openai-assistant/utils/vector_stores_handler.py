@@ -70,4 +70,5 @@ async def main():
 
 if __name__ == "__main__":
     vector_stores = asyncio.run(main())
+    default_store = vector_stores.find_by_name("Deafaut")
     pass

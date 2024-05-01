@@ -26,7 +26,7 @@ class OpenAIHandler(ABC):
         return self
 
     def find_by_name(self, name: str):
-        return [obj for obj in self.objects if obj.name == name]
+        return self.objects[name]
 
     async def load_config(self) -> dict:
         return load_yaml(self.config_path, self.item_type)
