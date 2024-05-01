@@ -32,7 +32,6 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(isinstance(item, Assistant) for item in assistants),
                         "all items in files should be of type Assistant")
 
-    @unittest.skip("Another one-way integration test")
     async def test_assistant_update(self):
         vector_store_id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
         tool = ToolResourcesFileSearch(vector_store_ids=[vector_store_id])
@@ -40,7 +39,6 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
         config = AssistantUpdateParams(tool_resources=tool_resources)
         result = await assistant_handler.assistant_update(ASSISTANT_ID, config)
         self.assertTrue(result.tool_resources)
-
 
 
 @unittest.skip("Needs valid thread and big refactor")
