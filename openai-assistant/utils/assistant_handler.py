@@ -2,35 +2,17 @@ import asyncio
 import logging
 
 
-from typing import Optional, List
+from typing import List
 
 import yaml
 from openai.pagination import AsyncCursorPage
 from openai.types.beta import Assistant
 
-from utils.openai_utils import client, load_json, load_yaml, AsyncPaginatorHelper, list_to_dict
-
-ASSISTANT_NAME = "My Assistant"
+from utils.openai_utils import client, load_yaml, AsyncPaginatorHelper, list_to_dict
 
 logger = logging.getLogger("chainlit")
 
-
 ASSISTANT_CONFIG_PATH = 'assistant.yaml'
-
-
-def get_assistant_id(assistant_name: str = ASSISTANT_NAME) -> Optional[str]:
-    """
-    Retrieves the assistant ID by name from the loaded assistant dictionary.
-
-    Args:
-        assistant_name: The name of the assistant to retrieve the ID for. Defaults to ASSISTANT_NAME.
-
-    Returns:
-        The assistant ID if present in the dictionary, otherwise None.
-    """
-    # we're running into path issues with the test files.
-    assistant_dict = load_json("assistants.json")
-    return assistant_dict.get(assistant_name)
 
 
 async def assistant_retrieve(assistant_id: str) -> Assistant:
@@ -71,7 +53,14 @@ async def assistants_create(config) -> Assistant:
     )
 
 
-async def main():
+async def main() -> List[Assistant]:
+    """
+    This function returns a dictionary of Assistants.
+    It looks for an existing config file and loads it.
+    If one is not found, it will pull existing Assistants from OAI and dump them to a config.
+    If no assistants are found, it will create our template assistant and save that to file.
+    :return:
+    """
     # Import our existing config file
     results = load_yaml(ASSISTANT_CONFIG_PATH, Assistant)
     if not results:
@@ -87,7 +76,7 @@ async def main():
                     results[i] = await assistants_create(assistant.to_dict())
         with open(ASSISTANT_CONFIG_PATH, 'w') as f:
             yaml.dump(results, f)
-
+    return results
 
 if __name__ == '__main__':
     asyncio.run(main())
