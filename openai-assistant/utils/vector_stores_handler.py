@@ -25,8 +25,8 @@ class VectorStoresHandler(OpenAIHandler):
     async def retrieve(self, vector_store_id):
         return await vector_stores_retrieve(vector_store_id)
 
-    async def update(self, item_id):
-        pass
+    async def update(self, item_id, config=None):
+        return await vector_stores_update(item_id, config)
 
 
 async def vector_stores_create(config=None) -> VectorStore:
@@ -56,10 +56,18 @@ async def vector_stores_retrieve(vector_store_id: str) -> VectorStore:
         raise Exception("vector_stores_retrieve failed") from e
 
 
+async def vector_stores_update(vector_store_id: str, config):
+    try:
+        return await client.beta.vector_stores.update(vector_store_id, **config)
+    except Exception as e:
+        logging.error(f"Failed to update vector_stores due to an error: {e}")
+        raise Exception("vector_stores_update failed") from e
+
+
 async def main():
     return await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).list()
 
 
 if __name__ == "__main__":
-    result = asyncio.run(main())
+    vector_stores = asyncio.run(main())
     pass

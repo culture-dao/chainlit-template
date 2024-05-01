@@ -29,6 +29,14 @@ class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
         store: VectorStore = await vector_stores_handler.vector_stores_retrieve(self.vector_id)
         self.assertTrue(isinstance(store, VectorStore))
 
+    async def test_vector_store_update(self):
+        id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
+        config = {
+            "name": "Default Datastore"
+        }
+        result = await vector_stores_handler.vector_stores_update(id, config)
+        self.assertEqual(result.name, "Default Datastore")
+
 
 if __name__ == '__main__':
     unittest.main()
