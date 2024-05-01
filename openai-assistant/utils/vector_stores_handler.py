@@ -65,10 +65,11 @@ async def vector_stores_update(vector_store_id: str, config):
 
 
 async def main():
-    return await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).init()
+    vector_stores = await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).init()
+    default_store = vector_stores.find_by_name("Default Datastore")
+    if not default_store:
+        await vector_stores_create({'name': "Default Datastore"})
 
 
 if __name__ == "__main__":
-    vector_stores = asyncio.run(main())
-    default_store = vector_stores.find_by_name("Deafaut")
-    pass
+    asyncio.run(main())
