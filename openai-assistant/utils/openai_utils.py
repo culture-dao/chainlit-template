@@ -159,7 +159,7 @@ def list_to_dict(_list):
     _dict = {}
 
     for obj in _list:
-        _dict[obj.id] = obj.dict()
+        _dict[obj.name] = obj.dict()
 
     return _dict
 
