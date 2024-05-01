@@ -75,7 +75,7 @@ async def main() -> List[Assistant]:
     :return:
     """
 
-    return await AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant).list()
+    return await AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant).init()
 
 if __name__ == '__main__':
     assistants = asyncio.run(main())

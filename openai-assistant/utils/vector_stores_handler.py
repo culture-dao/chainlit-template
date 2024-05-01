@@ -65,7 +65,7 @@ async def vector_stores_update(vector_store_id: str, config):
 
 
 async def main():
-    return await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).list()
+    return await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).init()
 
 
 if __name__ == "__main__":

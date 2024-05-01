@@ -12,6 +12,17 @@ class OpenAIHandler(ABC):
     def __init__(self, config_path: str, item_type: Type[T]):
         self.config_path = config_path
         self.item_type = item_type
+        self.objects = None
+
+    async def init(self):
+        self.objects = await self.load_config()
+        if not self.objects:
+            self.objects = await self.list()
+            if not self.objects:
+                self.objects = await self.create(config={})
+        with open(self.config_path, 'w') as f:
+            yaml.dump(list_to_dict(self.objects), f)
+        return self.objects
 
     async def load_config(self) -> dict:
         return load_yaml(self.config_path, self.item_type)
@@ -31,13 +42,3 @@ class OpenAIHandler(ABC):
     @abstractmethod
     async def update(self, item_id):
         pass
-
-    async def sync_with_yaml(self):
-        results = await self.load_config()
-        if not results:
-            items = await self.list_items()
-            results = list_to_dict(items)
-            if not results:
-                results = await self.create_item()
-        with open(self.config_path, 'w') as f:
-            yaml.dump(results, f)
