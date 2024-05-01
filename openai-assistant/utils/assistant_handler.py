@@ -48,7 +48,7 @@ async def assistant_retrieve(assistant_id: str) -> Assistant:
         logger.info(f"Retrieved existing assistant: {assistant.name}")
         return assistant
     except NotFoundError as e:
-        logger.error({e.body['message']})
+        logger.error({e})
         raise
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -66,7 +66,7 @@ async def assistants_create(config) -> Assistant:
     )
 
 
-async def main() -> List[Assistant]:
+async def main() -> AssistantHandler:
     """
     This function returns a dictionary of Assistants.
     It looks for an existing config file and loads it.
@@ -79,4 +79,5 @@ async def main() -> List[Assistant]:
 
 if __name__ == '__main__':
     assistants = asyncio.run(main())
+    liminal_flow = assistants.find_by_name("Liminal Flow Agent")
     pass
