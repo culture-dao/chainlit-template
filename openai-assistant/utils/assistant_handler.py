@@ -28,6 +28,17 @@ class AssistantHandler(OpenAIHandler):
         pass
 
 
+async def assistants_list() -> List[Assistant]:
+    assistants: AsyncCursorPage[Assistant] = await client.beta.assistants.list()
+    return await AsyncPaginatorHelper.collect_all_items(assistants)
+
+
+async def assistants_create(config) -> Assistant:
+    return await client.beta.assistants.create(
+        **config
+    )
+
+
 async def assistant_retrieve(assistant_id: str) -> Assistant:
     """
         Retrieves and logs details about an existing assistant by its ID.
@@ -55,15 +66,12 @@ async def assistant_retrieve(assistant_id: str) -> Assistant:
         raise
 
 
-async def assistants_list() -> List[Assistant]:
-    assistants: AsyncCursorPage[Assistant] = await client.beta.assistants.list()
-    return await AsyncPaginatorHelper.collect_all_items(assistants)
-
-
-async def assistants_create(config) -> Assistant:
-    return await client.beta.assistants.create(
-        **config
-    )
+async def assistant_update(assistant_id, config) -> Assistant:
+    try:
+        return await client.beta.assistants.update(assistant_id, **config)
+    except Exception as e:
+        logging.error(f"Failed to update vector_stores due to an error: {e}")
+        raise Exception("vector_stores_update failed") from e
 
 
 async def main() -> AssistantHandler:
@@ -80,4 +88,3 @@ async def main() -> AssistantHandler:
 if __name__ == '__main__':
     assistants = asyncio.run(main())
     liminal_flow = assistants.find_by_name("Liminal Flow Agent")
-    pass

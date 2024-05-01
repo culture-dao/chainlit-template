@@ -4,10 +4,10 @@ from typing import Iterable, List
 
 import chainlit as cl
 from openai.types.beta import Assistant
+from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
-from utils import assistant_handler
 from chainlit_utils import DictToObject
-
+from utils import assistant_handler
 from utils.openai_utils import client
 
 ASSISTANT_ID = os.getenv('ASSISTANT_ID')
@@ -31,6 +31,16 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(isinstance(assistants, Iterable), "obj should be an iterable")
         self.assertTrue(all(isinstance(item, Assistant) for item in assistants),
                         "all items in files should be of type Assistant")
+
+    @unittest.skip("Another one-way integration test")
+    async def test_assistant_update(self):
+        vector_store_id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
+        tool = ToolResourcesFileSearch(vector_store_ids=[vector_store_id])
+        tool_resources = ToolResources(file_search=tool)
+        config = AssistantUpdateParams(tool_resources=tool_resources)
+        result = await assistant_handler.assistant_update(ASSISTANT_ID, config)
+        self.assertTrue(result.tool_resources)
+
 
 
 @unittest.skip("Needs valid thread and big refactor")
