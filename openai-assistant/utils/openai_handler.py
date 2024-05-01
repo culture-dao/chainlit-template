@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Type, List
+from typing import TypeVar, Type
 
 import yaml
 
@@ -12,7 +12,7 @@ class OpenAIHandler(ABC):
     def __init__(self, config_path: str, item_type: Type[T]):
         self.config_path = config_path
         self.item_type = item_type
-        self.objects: List[item_type] = []
+        self.objects: dict[str, item_type] = {}
         self.map: dict[str, dict]
 
     async def init(self):
