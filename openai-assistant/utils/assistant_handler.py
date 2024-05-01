@@ -4,6 +4,7 @@ from typing import List
 
 from openai.pagination import AsyncCursorPage
 from openai.types.beta import Assistant
+from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import client, AsyncPaginatorHelper
@@ -74,6 +75,18 @@ async def assistant_update(assistant_id, config) -> Assistant:
         raise Exception("vector_stores_update failed") from e
 
 
+async def attach_file_search(assistant_id, vector_store_id=None) -> Assistant:
+    if vector_store_id is None:
+        # get "Default Datastore"
+        vector_store_id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
+    tool = ToolResourcesFileSearch(vector_store_ids=[vector_store_id])
+    tool_resources = ToolResources(file_search=tool)
+    config = AssistantUpdateParams(tool_resources=tool_resources)
+    result = await assistant_update(assistant_id, config)
+    assert result.tool_resources.file_search
+    return result
+
+
 async def main() -> AssistantHandler:
     """
     This function returns a dictionary of Assistants.
@@ -83,8 +96,16 @@ async def main() -> AssistantHandler:
     :return:
     """
 
-    return await AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant).init()
+    assistants = await AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant).init()
+
+    liminal_flow: Assistant = assistants.find_by_name("Liminal Flow Agent")
+    if not liminal_flow.tool_resources.file_search:
+        liminal_flow = await attach_file_search(liminal_flow)
+
+    assistants["Liminal Flow Agent"] = liminal_flow
+
+    return assistants
+
 
 if __name__ == '__main__':
     assistants = asyncio.run(main())
-    liminal_flow = assistants.find_by_name("Liminal Flow Agent")
