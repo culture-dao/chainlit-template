@@ -2,11 +2,11 @@ import asyncio
 import logging
 from typing import List
 
-import yaml
 from openai.pagination import AsyncCursorPage
 from openai.types.beta import VectorStore
 
-from utils.openai_utils import client, AsyncPaginatorHelper, load_yaml, list_to_dict
+from utils.openai_handler import OpenAIHandler
+from utils.openai_utils import client, AsyncPaginatorHelper
 
 VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 
@@ -15,9 +15,23 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logging.getLogger("httpx").setLevel("WARNING")
 
 
-async def vector_stores_create() -> VectorStore:
+class VectorStoresHandler(OpenAIHandler):
+    async def list(self):
+        return await vector_stores_list()
+
+    async def create(self, config):
+        return await vector_stores_create()
+
+    async def retrieve(self, vector_store_id):
+        return await vector_stores_retrieve(vector_store_id)
+
+    async def update(self, item_id):
+        pass
+
+
+async def vector_stores_create(config=None) -> VectorStore:
     try:
-        return await client.beta.vector_stores.create()
+        return await client.beta.vector_stores.create(**config)
     except Exception as e:
         logging.error(f"Failed to create vector_stores due to an error: {e}")
         raise Exception("vector_stores_create failed") from e
@@ -43,15 +57,9 @@ async def vector_stores_retrieve(vector_store_id: str) -> VectorStore:
 
 
 async def main():
-    results = load_yaml(VECTOR_STORES_CONFIG_PATH, VectorStore)
-    if not results:
-        vector_stores = await vector_stores_list()
-        results = list_to_dict(vector_stores)
-        if not results:
-            results = await vector_stores_create()
-    with open(VECTOR_STORES_CONFIG_PATH, 'w') as f:
-        yaml.dump(results, f)
+    return await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).list()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    result = asyncio.run(main())
+    pass

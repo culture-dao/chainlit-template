@@ -1,18 +1,31 @@
 import asyncio
 import logging
-
-
 from typing import List
 
-import yaml
 from openai.pagination import AsyncCursorPage
 from openai.types.beta import Assistant
 
-from utils.openai_utils import client, load_yaml, AsyncPaginatorHelper, list_to_dict
+from utils.openai_handler import OpenAIHandler
+from utils.openai_utils import client, AsyncPaginatorHelper
 
 logger = logging.getLogger("chainlit")
 
 ASSISTANT_CONFIG_PATH = 'assistant.yaml'
+
+
+class AssistantHandler(OpenAIHandler):
+
+    async def list(self):
+        return await assistants_list()
+
+    async def create(self, config):
+        return await assistants_create(config)
+
+    async def retrieve(self, assistant_id):
+        return await assistant_retrieve(assistant_id)
+
+    async def update(self, item_id):
+        pass
 
 
 async def assistant_retrieve(assistant_id: str) -> Assistant:
@@ -61,22 +74,9 @@ async def main() -> List[Assistant]:
     If no assistants are found, it will create our template assistant and save that to file.
     :return:
     """
-    # Import our existing config file
-    results = load_yaml(ASSISTANT_CONFIG_PATH, Assistant)
-    if not results:
-        # No config, load from OAI
-        assistants = await assistants_list()
-        results = list_to_dict(assistants)
-        if not results:
-            # No agents, load template
-            results = load_yaml('liminal_flow.yml')
-            for i in results.keys():
-                assistant = results[i]
-                if not assistant.id:
-                    results[i] = await assistants_create(assistant.to_dict())
-        with open(ASSISTANT_CONFIG_PATH, 'w') as f:
-            yaml.dump(results, f)
-    return results
+
+    return await AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant).list()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    assistants = asyncio.run(main())
+    pass

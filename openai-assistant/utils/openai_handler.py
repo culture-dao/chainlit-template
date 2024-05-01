@@ -17,11 +17,19 @@ class OpenAIHandler(ABC):
         return load_yaml(self.config_path, self.item_type)
 
     @abstractmethod
-    async def list_items(self):
+    async def list(self):
         pass
 
     @abstractmethod
-    async def create_item(self):
+    async def create(self, config):
+        pass
+
+    @abstractmethod
+    async def retrieve(self, item_id):
+        pass
+
+    @abstractmethod
+    async def update(self, item_id):
         pass
 
     async def sync_with_yaml(self):
