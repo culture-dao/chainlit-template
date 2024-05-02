@@ -81,6 +81,65 @@ async def process_thread_message(
             logger.error("unknown message type", type(content_message))
 
 
+async def handle_tool_call(step_details, step_references, step, tool_outputs):
+    tool_map = {}
+    if step_details.type == "tool_calls":
+        for tool_call in step_details.tool_calls:
+            if isinstance(tool_call, dict):
+                tool_call = DictToObject(tool_call)
+
+            if tool_call.type == "code_interpreter":
+                await process_tool_call(
+                    step_references=step_references,
+                    step=step,
+                    tool_call=tool_call,
+                    name=tool_call.type,
+                    input=tool_call.code_interpreter.input
+                          or "# Generating code",
+                    output=tool_call.code_interpreter.outputs,
+                    show_input="python",
+                )
+
+                tool_outputs.append(
+                    {
+                        "output": tool_call.code_interpreter.outputs or "",
+                        "tool_call_id": tool_call.id,
+                    }
+                )
+
+            elif tool_call.type == "retrieval":
+                await process_tool_call(
+                    step_references=step_references,
+                    step=step,
+                    tool_call=tool_call,
+                    name=tool_call.type,
+                    input="Retrieving information",
+                    output="Retrieved information",
+                )
+
+            elif tool_call.type == "function":
+                function_name = tool_call.function.name
+                function_args = json.loads(tool_call.function.arguments)
+
+                function_output = tool_map[function_name](
+                    **json.loads(tool_call.function.arguments)
+                )
+
+                await process_tool_call(
+                    step_references=step_references,
+                    step=step,
+                    tool_call=tool_call,
+                    name=function_name,
+                    input=function_args,
+                    output=function_output,
+                    show_input="json",
+                )
+
+                tool_outputs.append(
+                    {"output": function_output, "tool_call_id": tool_call.id}
+                )
+
+
 async def step_logic(
         thread_id: str,
         human_query: str,
@@ -128,62 +187,8 @@ async def step_logic(
                     thread_id=thread_id,
                 )
                 await process_thread_message(message_references, thread_message, client)
+            await handle_tool_call(step_details, step_references, step, tool_outputs)
 
-            if step_details.type == "tool_calls":
-                for tool_call in step_details.tool_calls:
-                    if isinstance(tool_call, dict):
-                        tool_call = DictToObject(tool_call)
-
-                    if tool_call.type == "code_interpreter":
-                        await process_tool_call(
-                            step_references=step_references,
-                            step=step,
-                            tool_call=tool_call,
-                            name=tool_call.type,
-                            input=tool_call.code_interpreter.input
-                                  or "# Generating code",
-                            output=tool_call.code_interpreter.outputs,
-                            show_input="python",
-                        )
-
-                        tool_outputs.append(
-                            {
-                                "output": tool_call.code_interpreter.outputs or "",
-                                "tool_call_id": tool_call.id,
-                            }
-                        )
-
-                    elif tool_call.type == "retrieval":
-                        await process_tool_call(
-                            step_references=step_references,
-                            step=step,
-                            tool_call=tool_call,
-                            name=tool_call.type,
-                            input="Retrieving information",
-                            output="Retrieved information",
-                        )
-
-                    elif tool_call.type == "function":
-                        function_name = tool_call.function.name
-                        function_args = json.loads(tool_call.function.arguments)
-
-                        function_output = tool_map[function_name](
-                            **json.loads(tool_call.function.arguments)
-                        )
-
-                        await process_tool_call(
-                            step_references=step_references,
-                            step=step,
-                            tool_call=tool_call,
-                            name=function_name,
-                            input=function_args,
-                            output=function_output,
-                            show_input="json",
-                        )
-
-                        tool_outputs.append(
-                            {"output": function_output, "tool_call_id": tool_call.id}
-                        )
             if (
                     run.status == "requires_action"
                     and run.required_action.type == "submit_tool_outputs"
