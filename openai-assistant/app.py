@@ -1,13 +1,13 @@
 import logging
-from typing import Dict, List, Optional
+from typing import List
 
 import chainlit as cl
-from literalai import Thread
-from chainlit_utils import process_files
 from chainlit.types import ThreadDict
+from literalai import Thread
 
-from cl_events.on_chat_start import on_start_chat_logic
+from chainlit_utils import process_files
 from cl_events.on_chat_resume import on_chat_resume_logic
+from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
 from utils.openai_utils import client
 

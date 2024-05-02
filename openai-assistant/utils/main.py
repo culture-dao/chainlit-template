@@ -1,12 +1,10 @@
 import asyncio
 import os
-import yaml
 
+import yaml
 from openai.pagination import AsyncCursorPage
 from openai.resources import Files, AsyncFiles
-from openai.resources.beta.assistants import AsyncAssistants
 from openai.types import FileObject
-from openai.types.beta import Assistant
 
 from utils.openai_utils import client
 
