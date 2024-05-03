@@ -30,14 +30,20 @@ class AssistantHandler(OpenAIHandler):
 
 
 async def assistants_list() -> List[Assistant]:
-    assistants: AsyncCursorPage[Assistant] = await client.beta.assistants.list()
-    return await AsyncPaginatorHelper.collect_all_items(assistants)
+    try:
+        assistants: AsyncCursorPage[Assistant] = await client.beta.assistants.list()
+        return await AsyncPaginatorHelper.collect_all_items(assistants)
+    except Exception as e:
+        logging.error(f"Failed to list assistants due to an error: {e}")
+        raise Exception("assistants_list failed") from e
 
 
-async def assistants_create(config) -> Assistant:
-    return await client.beta.assistants.create(
-        **config
-    )
+async def assistants_create(config=None) -> Assistant:
+    try:
+        return await client.beta.assistants.create(**config)
+    except Exception as e:
+        logging.error(f"Failed to create vector_stores due to an error: {e}")
+        raise Exception("vector_stores_create failed") from e
 
 
 async def assistant_retrieve(assistant_id: str) -> Assistant:
@@ -63,8 +69,8 @@ async def assistant_retrieve(assistant_id: str) -> Assistant:
         logger.error({e})
         raise
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-        raise
+        logging.error(f"Failed to retrieve assistants due to an error: {e}")
+        raise Exception("assistants_retrieve failed") from e
 
 
 async def assistant_update(assistant_id, config) -> Assistant:
@@ -102,10 +108,12 @@ async def main() -> AssistantHandler:
     if not liminal_flow.tool_resources.file_search:
         liminal_flow = await attach_file_search(liminal_flow)
 
-    assistants["Liminal Flow Agent"] = liminal_flow
+    # Hacky, doesn't save the config
+    assistants.objects["Liminal Flow Agent"] = liminal_flow
 
     return assistants
 
 
 if __name__ == '__main__':
     assistants = asyncio.run(main())
+

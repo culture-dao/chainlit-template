@@ -29,14 +29,6 @@ class VectorStoresHandler(OpenAIHandler):
         return await vector_stores_update(item_id, config)
 
 
-async def vector_stores_create(config=None) -> VectorStore:
-    try:
-        return await client.beta.vector_stores.create(**config)
-    except Exception as e:
-        logging.error(f"Failed to create vector_stores due to an error: {e}")
-        raise Exception("vector_stores_create failed") from e
-
-
 async def vector_stores_list() -> List[VectorStore]:
     """Lists all the vector_stores for a specific assistant"""
     try:
@@ -46,6 +38,14 @@ async def vector_stores_list() -> List[VectorStore]:
     except Exception as e:
         logging.error(f"Failed to list vector_stores due to an error: {e}")
         raise Exception("vector_stores_list failed") from e
+
+
+async def vector_stores_create(config=None) -> VectorStore:
+    try:
+        return await client.beta.vector_stores.create(**config)
+    except Exception as e:
+        logging.error(f"Failed to create vector_stores due to an error: {e}")
+        raise Exception("vector_stores_create failed") from e
 
 
 async def vector_stores_retrieve(vector_store_id: str) -> VectorStore:

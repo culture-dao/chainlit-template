@@ -154,12 +154,12 @@ def load_yaml(filename: str, model: Type[BaseModel]) -> Dict[str, BaseModel]:
         return {}
 
 
-def list_to_dict(_list):
+def list_to_dict(_list: list[[BaseModel]]) -> dict[str, object]:
 
     _dict = {}
 
     for obj in _list:
-        _dict[obj.name] = obj.dict()
+        _dict[obj.name] = obj
 
     return _dict
 
