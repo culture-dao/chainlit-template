@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 
 import chainlit as cl
 from chainlit.logger import logger
+from openai import AsyncOpenAI
 from openai.types.beta.threads import (
     Message as ThreadMessage,
     TextContentBlock as MessageContentText,
@@ -11,6 +12,7 @@ from openai.types.beta.threads import (
 )
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
+from openai.types.beta.vector_stores import VectorStoreFile
 
 from utils.annotations import OpenAIAdapter
 from utils.assistant_handler import assistant_handler
@@ -88,9 +90,11 @@ async def step_logic(
         file_ids: List[str] = [],
         client=None
 ):
+    metadata = {'created_files': file_ids}
+
     # Add the message to the thread
     await client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=human_query, attachments=file_ids
+        thread_id=thread_id, role="user", content=human_query, metadata=metadata
     )
 
     assistant = assistant_handler.find_by_name("Liminal Flow Agent")
