@@ -90,11 +90,13 @@ async def step_logic(
         file_ids: List[str] = [],
         client=None
 ):
-    metadata = {'created_files': file_ids}
+    if file_ids:
+        logger.info(f"File uploaded to file search: {file_ids}")
+        human_query += f"/nThe following files were uploaded to file search: {file_ids}"
 
     # Add the message to the thread
     await client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=human_query, metadata=metadata
+        thread_id=thread_id, role="user", content=human_query
     )
 
     assistant = assistant_handler.find_by_name("Liminal Flow Agent")
