@@ -34,8 +34,9 @@ def auth_callback(username: str, password: str):
 
 
 @cl.author_rename
+# TODO: Name should be dynamic?
 def rename(orig_author: str):
-    rename_dict = {"assistant": "ASSISTANT NAME"}
+    rename_dict = {"assistant": "Liminal FLow"}
     return rename_dict.get(orig_author, orig_author)
 
 
