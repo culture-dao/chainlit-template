@@ -43,7 +43,8 @@ class OpenAIHandler(ABC):
 
     def update_config(self):
         with open(self.config_path, 'w') as f:
-            yaml.dump(self.objects, f)
+            _as_dicts = [remote.dict() for remote in self.remotes]
+            yaml.dump(_as_dicts, f)
 
     async def sync_with_remote(self):
 
@@ -52,7 +53,8 @@ class OpenAIHandler(ABC):
 
             if not local_object or local_object != remote_object:
                 self.objects[remote_object.name] = remote_object
-                self.update_config()
+
+            self.update_config()
 
     @abstractmethod
     async def list(self):
