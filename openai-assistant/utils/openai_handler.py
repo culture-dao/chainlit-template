@@ -43,7 +43,7 @@ class OpenAIHandler(ABC):
 
     def update_config(self):
         with open(self.config_path, 'w') as f:
-            _as_dicts = [remote.dict() for remote in self.remotes]
+            _as_dicts = {remote.name: remote.dict() for remote in self.remotes}
             yaml.dump(_as_dicts, f)
 
     async def sync_with_remote(self):
