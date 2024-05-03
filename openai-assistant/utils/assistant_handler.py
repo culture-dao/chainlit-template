@@ -1,9 +1,9 @@
 import asyncio
 import logging
-from typing import List
+from typing import List, Iterable
 
 from openai.pagination import AsyncCursorPage
-from openai.types.beta import Assistant
+from openai.types.beta import Assistant, AssistantToolParam, FileSearchToolParam
 from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
 from utils.openai_handler import OpenAIHandler
@@ -87,7 +87,12 @@ async def attach_file_search(assistant_id, vector_store_id=None) -> Assistant:
         vector_store_id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
     tool = ToolResourcesFileSearch(vector_store_ids=[vector_store_id])
     tool_resources = ToolResources(file_search=tool)
-    config = AssistantUpdateParams(tool_resources=tool_resources)
+
+    # TODO: How to turn on file search? Untested
+    tools: Iterable[AssistantToolParam]
+    tools = [FileSearchToolParam(type='file_search')]
+    config = AssistantUpdateParams(tool_resources=tool_resources, tools=tools)
+
     result = await assistant_update(assistant_id, config)
     assert result.tool_resources.file_search
     return result
