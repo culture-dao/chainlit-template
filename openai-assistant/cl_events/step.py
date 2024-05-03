@@ -1,7 +1,7 @@
 import json
-import os
 from datetime import datetime
 from typing import List, Dict, Any
+
 import chainlit as cl
 from chainlit.logger import logger
 from openai.types.beta.threads import (
@@ -13,6 +13,7 @@ from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
 from utils.annotations import OpenAIAdapter
+from utils.assistant_handler import assistant_handler
 
 
 async def process_thread_message(
@@ -92,7 +93,8 @@ async def step_logic(
         thread_id=thread_id, role="user", content=human_query, attachments=file_ids
     )
 
-    assistant_id = os.environ.get("ASSISTANT_ID")
+    assistant = assistant_handler.find_by_name("Liminal Flow Agent")
+    assistant_id = assistant.id
 
     # Create the run
     run = await client.beta.threads.runs.create(

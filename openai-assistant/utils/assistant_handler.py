@@ -93,27 +93,23 @@ async def attach_file_search(assistant_id, vector_store_id=None) -> Assistant:
     return result
 
 
+assistant_handler: AssistantHandler = AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant)
+
+
 async def main() -> AssistantHandler:
-    """
-    This function returns a dictionary of Assistants.
-    It looks for an existing config file and loads it.
-    If one is not found, it will pull existing Assistants from OAI and dump them to a config.
-    If no assistants are found, it will create our template assistant and save that to file.
-    :return:
-    """
+    await assistant_handler.init()
 
-    assistants = await AssistantHandler(ASSISTANT_CONFIG_PATH, Assistant).init()
-
-    liminal_flow: Assistant = assistants.find_by_name("Liminal Flow Agent")
+    liminal_flow: Assistant = assistant_handler.find_by_name("Liminal Flow Agent")
     if not liminal_flow.tool_resources.file_search:
         liminal_flow = await attach_file_search(liminal_flow)
 
     # Hacky, doesn't save the config
-    assistants.objects["Liminal Flow Agent"] = liminal_flow
+    assistant_handler.objects["Liminal Flow Agent"] = liminal_flow
 
-    return assistants
+    return assistant_handler
 
 
 if __name__ == '__main__':
     assistants = asyncio.run(main())
+
 

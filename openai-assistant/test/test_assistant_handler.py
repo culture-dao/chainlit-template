@@ -14,8 +14,7 @@ ASSISTANT_ID = os.getenv('ASSISTANT_ID')
 
 class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
-    def setUp(self) -> None:
-        self.client = client
+    # def setUp(self) -> None:
 
     async def test_assistant_retrieve_valid(self):
         result = await assistant_handler.assistant_retrieve(ASSISTANT_ID)
