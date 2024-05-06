@@ -8,16 +8,16 @@ load_dotenv()
 
 
 class EventHandler(AsyncAssistantEventHandler):
-    def on_text_created(self, text) -> None:
+    async def on_text_created(self, text) -> None:
         print(f"\nassistant > ", end="", flush=True)
 
-    def on_text_delta(self, delta, snapshot):
+    async def on_text_delta(self, delta, snapshot):
         print(delta.value, end="", flush=True)
 
-    def on_tool_call_created(self, tool_call):
+    async def on_tool_call_created(self, tool_call):
         print(f"\nassistant > {tool_call.type}\n", flush=True)
 
-    def on_tool_call_delta(self, delta, snapshot):
+    async def on_tool_call_delta(self, delta, snapshot):
         if delta.type == 'code_interpreter':
             if delta.code_interpreter.input:
                 print(delta.code_interpreter.input, end="", flush=True)
