@@ -1,14 +1,20 @@
 import unittest
-
+import logging
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
+from openai.types.beta.assistant_stream_event import ThreadRunCompleted
 from typing_extensions import override
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 class EventHandler(AsyncAssistantEventHandler):
+    event_map = {}
+
     @override
     async def on_text_created(self, text) -> None:
         print(f"\nassistant > ", end="", flush=True)
@@ -33,8 +39,16 @@ class EventHandler(AsyncAssistantEventHandler):
                         print(f"\n{output.logs}", flush=True)
 
     @override
+    async def on_run_step_done(self, run):
+        logging.info(EventHandler.event_map)
+
+    @override
     async def on_event(self, event):
-        print(f"Handling event: {type(event)}")
+        event_type = type(event).__name__
+        if event_type in EventHandler.event_map:
+            EventHandler.event_map[event_type] += 1
+        else:
+            EventHandler.event_map[event_type] = 1
 
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
