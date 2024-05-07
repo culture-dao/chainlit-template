@@ -174,6 +174,8 @@ async def step_logic(
             thread_id=thread_id, run_id=run.id, order="asc"
         )
 
+        # ThreadRunStepCreated
+
         for step in run_steps.data:
             # Fetch step details
             run_step = await client.beta.threads.runs.steps.retrieve(
@@ -218,7 +220,7 @@ async def process_tool_call(
         output: Any,
         show_input: str = None,
 ):
-    cl_step = None
+    cl_step: cl.Step | None = None
     update = False
     if tool_call.id not in step_references:
         cl_step = cl.Step(
