@@ -1,5 +1,7 @@
 import unittest
 import logging
+from typing import Dict
+
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
@@ -25,6 +27,7 @@ class EventHandler(AsyncAssistantEventHandler):
         self.run: Run | None = None
         self.run_step: RunStep | None = None
         self.message_content: str | None = None
+        self.message_references: Dict[str, cl.Message] = {}
         self.message: cl.Message | None = None
 
     @override
@@ -41,7 +44,8 @@ class EventHandler(AsyncAssistantEventHandler):
     @override
     async def on_text_delta(self, delta: TextDelta, snapshot: Text):
         print(delta.value, end="", flush=True)
-        self.message_content = snapshot.value
+        self.message.content = delta.value
+        await self.message.update()
 
     @override
     async def on_tool_call_created(self, tool_call):
@@ -77,9 +81,10 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
         self.client = openai.AsyncOpenAI()
-        self.thread = await self.client.beta.threads.create()
+        self.thread = None
 
     async def testStreaming(self):
+        self.thread = await self.client.beta.threads.create()
         async with self.client.beta.threads.runs.stream(
                 thread_id=self.thread.id,
                 assistant_id=self.assistant_id,
@@ -93,21 +98,22 @@ class TestEventHandler(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
         self.client = openai.AsyncOpenAI()
-        self.thread = await self.client.beta.threads.create()
 
     @patch('chainlit.Message', new_callable=MagicMock)
     async def testMessageDelta(self, mock_message):
         mock_message.return_value.send = AsyncMock()
+        mock_message.return_value.update = AsyncMock()
 
         e = EventHandler()
         m = Message.model_construct(text="The")
         await e.on_message_created(m)
 
+        mock_message.assert_called_with(content='')  # Constructor
         mock_message.return_value.send.assert_called_once()
-        self.assertEqual(e.message_content, None)
 
         delta = TextDelta(value="The")
         text: Text = Text(value='The', annotations=[])
 
         await e.on_text_delta(delta, text)
-        self.assertEqual(e.message_content, 'The')
+        self.assertEqual(e.message.content, "The")
+        mock_message.return_value.update.assert_called_once()
