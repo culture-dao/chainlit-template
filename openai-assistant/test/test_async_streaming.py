@@ -7,6 +7,7 @@ from typing_extensions import override
 
 load_dotenv()
 
+
 class EventHandler(AsyncAssistantEventHandler):
     @override
     async def on_text_created(self, text) -> None:
@@ -30,9 +31,10 @@ class EventHandler(AsyncAssistantEventHandler):
                 for output in delta.code_interpreter.outputs:
                     if output.type == "logs":
                         print(f"\n{output.logs}", flush=True)
-                        
+
+    @override
     async def on_event(self, event):
-        print(f"Handling event: {event}")
+        print(f"Handling event: {type(event)}")
 
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
