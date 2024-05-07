@@ -3,19 +3,24 @@ import unittest
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
+from typing_extensions import override
 
 load_dotenv()
 
 class EventHandler(AsyncAssistantEventHandler):
+    @override
     async def on_text_created(self, text) -> None:
         print(f"\nassistant > ", end="", flush=True)
 
+    @override
     async def on_text_delta(self, delta, snapshot):
         print(delta.value, end="", flush=True)
 
+    @override
     async def on_tool_call_created(self, tool_call):
         print(f"\nassistant > {tool_call.type}\n", flush=True)
 
+    @override
     async def on_tool_call_delta(self, delta, snapshot):
         if delta.type == 'code_interpreter':
             if delta.code_interpreter.input:
