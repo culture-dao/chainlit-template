@@ -3,7 +3,6 @@ import logging
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
-from openai.types.beta.assistant_stream_event import ThreadRunCompleted
 from typing_extensions import override
 
 load_dotenv()
@@ -13,7 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class EventHandler(AsyncAssistantEventHandler):
-    event_map = {}
+
+    def __init__(self):
+        super().__init__()
+        self.event_map = {}
 
     @override
     async def on_text_created(self, text) -> None:
@@ -40,15 +42,15 @@ class EventHandler(AsyncAssistantEventHandler):
 
     @override
     async def on_run_step_done(self, run):
-        logging.info(EventHandler.event_map)
+        logging.info(self.event_map)
 
     @override
     async def on_event(self, event):
         event_type = type(event).__name__
-        if event_type in EventHandler.event_map:
-            EventHandler.event_map[event_type] += 1
+        if event_type in self.event_map:
+            self.event_map[event_type] += 1
         else:
-            EventHandler.event_map[event_type] = 1
+            self.event_map[event_type] = 1
 
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
