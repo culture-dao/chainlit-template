@@ -3,6 +3,7 @@ import logging
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
+from openai.types.beta.threads import MessageDelta, Message
 from typing_extensions import override
 
 load_dotenv()
@@ -16,6 +17,7 @@ class EventHandler(AsyncAssistantEventHandler):
     def __init__(self):
         super().__init__()
         self.event_map = {}
+        self.message = None
 
     @override
     async def on_text_created(self, text) -> None:
@@ -43,6 +45,7 @@ class EventHandler(AsyncAssistantEventHandler):
     @override
     async def on_run_step_done(self, run):
         logging.info(self.event_map)
+        logging.info(self.message)
 
     @override
     async def on_event(self, event):
@@ -51,6 +54,12 @@ class EventHandler(AsyncAssistantEventHandler):
             self.event_map[event_type] += 1
         else:
             self.event_map[event_type] = 1
+
+    async def on_message_delta(self, delta: MessageDelta, snapshot: Message) -> None:
+        # Update message
+        # Content is snapshot.content[0].text.value
+        self.message = snapshot
+        # Check for annotations
 
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
