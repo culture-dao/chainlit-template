@@ -23,7 +23,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
     def __init__(self):
         super().__init__()
-        self.event_map = {}
+        self.event_map = {}  # for debugging
         self.run: Run | None = None
         self.run_step: RunStep | None = None
         self.message_content: str | None = None
@@ -83,7 +83,11 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         self.client = openai.AsyncOpenAI()
         self.thread = None
 
-    async def testStreaming(self):
+    @patch('chainlit.Message', new_callable=MagicMock)
+    async def testStreaming(self, mock_message):
+        mock_message.return_value.send = AsyncMock()
+        mock_message.return_value.update = AsyncMock()
+
         self.thread = await self.client.beta.threads.create()
         async with self.client.beta.threads.runs.stream(
                 thread_id=self.thread.id,
@@ -100,7 +104,7 @@ class TestEventHandler(unittest.IsolatedAsyncioTestCase):
         self.client = openai.AsyncOpenAI()
 
     @patch('chainlit.Message', new_callable=MagicMock)
-    async def testMessageDelta(self, mock_message):
+    async def testMessgeDelta(self, mock_message):
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
 

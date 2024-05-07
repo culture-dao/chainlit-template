@@ -11,7 +11,7 @@ message_with_citation = ThreadMessage(
     assistant_id='test_fixtures',
     content=[
         MessageContentText(
-            text=Text(
+            text=Text.model_construct(
                 annotations=[TextAnnotationFileCitation(
                     end_index=241,
                     file_citation=TextAnnotationFileCitationFileCitation(

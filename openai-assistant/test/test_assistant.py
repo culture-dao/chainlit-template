@@ -24,6 +24,7 @@ class TestAssistant(unittest.IsolatedAsyncioTestCase):
             await retrieve_assistant("nonsense")
 
 
+@unittest.skip("Needs updated client/threads")
 class TestRuns(unittest.IsolatedAsyncioTestCase):
     thread = 'thread_39etazHnZG215hwrT3c4gF5p'
 

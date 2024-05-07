@@ -25,14 +25,15 @@ async def process_thread_message(
         # Generate a unique ID for each message using the thread ID and index
         id = thread_message.id + str(idx)
 
-        adapter = OpenAIAdapter(thread_message)
-        await adapter.main()
-        content = adapter.get_content()
-        elements = adapter.get_elements()
-
         # Check if the message content is of type text
         if isinstance(content_message, MessageContentText):
             # If the message ID already exists in the reference dictionary
+
+            adapter = OpenAIAdapter(thread_message)
+            await adapter.main()
+            content = adapter.get_content()
+            elements = adapter.get_elements()
+
             if id in message_references:
                 # Retrieve the existing message from references
                 msg = message_references[id]
@@ -183,6 +184,8 @@ async def step_logic(
             )
             step_details = run_step.step_details
             # Update step content in the Chainlit UI
+
+            # Message Creation Handler
             if step_details.type == "message_creation":
                 thread_message = await client.beta.threads.messages.retrieve(
                     message_id=step_details.message_creation.message_id,
