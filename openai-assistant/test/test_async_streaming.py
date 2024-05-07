@@ -7,6 +7,7 @@ from openai.types.beta.threads import Run, Text, TextDelta, Message
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads import MessageDelta, Message
 from typing_extensions import override
+from unittest.mock import MagicMock
 
 import chainlit as cl
 
@@ -24,13 +25,18 @@ class EventHandler(AsyncAssistantEventHandler):
         self.run: Run | None = None
         self.run_step: RunStep | None = None
         self.message_content: str | None = None
-        self.message = None
+        self.message: cl.Message | None = None
 
     @override
     async def on_text_created(self, text: Text) -> str:
         self.message_content = text.value
         print("\nassistant > ", end="", flush=True)
         return self.message_content
+
+    @override
+    async def on_message_created(self, message: Message) -> None:
+        self.message = cl.Message(content='')
+        await self.message.send()
 
     @override
     async def on_text_delta(self, delta: TextDelta, snapshot: Text):
@@ -91,9 +97,13 @@ class TestEventHandler(unittest.IsolatedAsyncioTestCase):
 
     async def testMessageDelta(self):
         e = EventHandler()
+        e.message = MagicMock(spec=cl.Message)
+        e.message.send = MagicMock()
+        e.message.update = MagicMock()
         m = Message.model_construct(text="The")
         await e.on_message_created(m)
 
+        e.message.send.assert_called_once()
         self.assertEqual(e.message_content, None)
 
         delta = TextDelta(value="The")
@@ -101,3 +111,4 @@ class TestEventHandler(unittest.IsolatedAsyncioTestCase):
 
         await e.on_text_delta(delta, text)
         self.assertEqual(e.message_content, 'The')
+
