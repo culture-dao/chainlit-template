@@ -6,7 +6,6 @@ from openai.lib.streaming import AsyncAssistantEventHandler
 
 load_dotenv()
 
-
 class EventHandler(AsyncAssistantEventHandler):
     async def on_text_created(self, text) -> None:
         print(f"\nassistant > ", end="", flush=True)
@@ -26,6 +25,9 @@ class EventHandler(AsyncAssistantEventHandler):
                 for output in delta.code_interpreter.outputs:
                     if output.type == "logs":
                         print(f"\n{output.logs}", flush=True)
+                        
+    async def on_event(self, event):
+        print(f"Handling event: {event}")
 
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
