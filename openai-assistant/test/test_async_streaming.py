@@ -7,7 +7,7 @@ from openai.types.beta.threads import Run, Text, TextDelta, Message
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads import MessageDelta, Message
 from typing_extensions import override
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, AsyncMock
 
 import chainlit as cl
 
@@ -95,15 +95,15 @@ class TestEventHandler(unittest.IsolatedAsyncioTestCase):
         self.client = openai.AsyncOpenAI()
         self.thread = await self.client.beta.threads.create()
 
-    async def testMessageDelta(self):
+    @patch('chainlit.Message', new_callable=MagicMock)
+    async def testMessageDelta(self, mock_message):
+        mock_message.return_value.send = AsyncMock()
+
         e = EventHandler()
-        e.message = MagicMock(spec=cl.Message)
-        e.message.send = MagicMock()
-        e.message.update = MagicMock()
         m = Message.model_construct(text="The")
         await e.on_message_created(m)
 
-        e.message.send.assert_called_once()
+        mock_message.return_value.send.assert_called_once()
         self.assertEqual(e.message_content, None)
 
         delta = TextDelta(value="The")
@@ -111,4 +111,3 @@ class TestEventHandler(unittest.IsolatedAsyncioTestCase):
 
         await e.on_text_delta(delta, text)
         self.assertEqual(e.message_content, 'The')
-
