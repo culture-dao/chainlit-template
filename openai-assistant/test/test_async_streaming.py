@@ -44,14 +44,16 @@ class EventHandler(AsyncAssistantEventHandler):
 
     @override
     async def on_message_created(self, message: Message) -> None:
+
         self.message = cl.Message(content='')
 
+        message_id = message.id
         # Add the message to message references when it's created
-        message_id = getattr(self.message, 'id', None)
         if message_id:
             self.message_references[message_id] = self.message
 
-        await self.message.send()
+        self.message_references[message.id] = self.message
+        await self.message_references[message.id].send()
 
     @override
     async def on_text_delta(self, delta: TextDelta, snapshot: Text):
@@ -116,6 +118,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         self.thread = None
 
     async def testStreaming(self, mock_message):
+        mock_message.id = '1234'
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
         self.thread = await self.client.beta.threads.create()
@@ -130,7 +133,6 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
     async def testMessageDelta(self, mock_message):
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
-        mock_message.return_value.id = '1234'
         e = EventHandler()
         m = Message.model_construct(text="The", id="123")
         await e.on_message_created(m)
@@ -141,14 +143,10 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         delta = TextDelta(value="The")
         text: Text = Text(value='The', annotations=[])
 
-        # e.current_event = ThreadMessageDelta(
-        #     data=MessageDeltaEvent(id="123", delta=MessageDelta(value="The"), object="thread.message.delta"),
-        #     event="thread.message.delta")
-        e.current_event = AsyncMock()
-        e.current_event.data.id = '1234'
+        e.current_event = ThreadMessageDelta(
+            data=MessageDeltaEvent(id="123", delta=MessageDelta(value="The"), object="thread.message.delta"),
+             event="thread.message.delta")
         logging.info(e.current_event.data.id)
-
-
         await e.on_text_delta(delta, text)
         self.assertEqual(e.message.content, "The")
 
