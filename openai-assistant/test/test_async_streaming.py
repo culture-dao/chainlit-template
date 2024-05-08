@@ -2,6 +2,7 @@ import unittest
 import logging
 from typing import Dict
 
+import chainlit
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
@@ -76,18 +77,16 @@ class EventHandler(AsyncAssistantEventHandler):
             self.event_map[event_type] = 1
 
 
+@patch('chainlit.Message', new_callable=MagicMock)
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
-
-    async def asyncSetUp(self) -> None:
+    async def asyncSetUp(self,) -> None:
         self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
         self.client = openai.AsyncOpenAI()
         self.thread = None
 
-    @patch('chainlit.Message', new_callable=MagicMock)
     async def testStreaming(self, mock_message):
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
-
         self.thread = await self.client.beta.threads.create()
         async with self.client.beta.threads.runs.stream(
                 thread_id=self.thread.id,
@@ -97,17 +96,9 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         ) as stream:
             await stream.until_done()
 
-
-class TestEventHandler(unittest.IsolatedAsyncioTestCase):
-    async def asyncSetUp(self) -> None:
-        self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
-        self.client = openai.AsyncOpenAI()
-
-    @patch('chainlit.Message', new_callable=MagicMock)
-    async def testMessgeDelta(self, mock_message):
+    async def testMessageDelta(self, mock_message):
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
-
         e = EventHandler()
         m = Message.model_construct(text="The")
         await e.on_message_created(m)
