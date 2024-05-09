@@ -1,11 +1,13 @@
 import logging
 from typing import Dict
+from typing_extensions import override
 
 import chainlit as cl
 from openai.lib.streaming import AsyncAssistantEventHandler
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.threads import Run, Text, Message, MessageDelta
-from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCallDeltaObject, FunctionToolCallDelta
+from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCallDeltaObject, FunctionToolCallDelta, \
+    ToolCallDelta, ToolCall
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,26 +57,25 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_tool_call_created(self, tool_call):
         print(f"\nassistant > {tool_call.type}\n", flush=True)
 
-    async def on_tool_call_delta(self, delta, snapshot):
-        if delta.type == 'code_interpreter':
+    async def on_tool_call_delta(self, delta: ToolCallDelta, snapshot):
+        if delta.type == 'file search':
+            print("Retrieving information")
+        elif delta.type == 'code_interpreter':
             if delta.code_interpreter.input:
                 print(delta.code_interpreter.input, end="", flush=True)
             if delta.code_interpreter.outputs:
-                print(f"\n\noutput >", flush=True)
+                print("\n\noutput >", flush=True)
                 for output in delta.code_interpreter.outputs:
                     if output.type == "logs":
                         print(f"\n{output.logs}", flush=True)
+        elif delta.type == 'function':
+            # function handler
+            pass
 
-    async def on_run_step_delta(self, delta: RunStepDelta, snapshot: RunStep) -> None:
-        if isinstance(delta.step_details.type, ToolCallDeltaObject):
-            for tool_call in delta.step_details.tool_calls:
-                if isinstance(tool_call,FunctionToolCallDelta):
-                    # check if step status is pending,
-                    # call tool, submit results &c..
-                    pass
-
-
-
+    @override
+    async def on_tool_call_done(self, tool_call: ToolCall) -> None:
+        if tool_call.type == 'file search':
+            print("Retrieved information")
 
     async def on_run_step_done(self, run):
         logging.info(self.event_map)
