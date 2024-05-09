@@ -6,7 +6,7 @@ import chainlit as cl
 from openai.lib.streaming import AsyncAssistantEventHandler
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.threads import Run, Text, Message, MessageDelta
-from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCallDeltaObject, FunctionToolCallDelta, \
+from openai.types.beta.threads.runs import RunStep, \
     ToolCallDelta, ToolCall
 
 logging.basicConfig(level=logging.INFO)
