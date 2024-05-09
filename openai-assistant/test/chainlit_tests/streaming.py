@@ -3,6 +3,7 @@ This is for testing the annotations or whatever other display functionality is n
 """
 
 import chainlit as cl
+from openai import AsyncOpenAI
 
 from utils.event_handler import EventHandler
 from utils.openai_utils import initialize_openai_client
@@ -10,7 +11,7 @@ from utils.openai_utils import initialize_openai_client
 
 @cl.on_chat_start
 async def on_chat_start():
-    client = initialize_openai_client()
+    client = AsyncOpenAI()
     thread = await client.beta.threads.create()
     async with client.beta.threads.runs.stream(
             thread_id=thread.id,
