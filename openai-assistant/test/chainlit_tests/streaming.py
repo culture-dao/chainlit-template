@@ -6,7 +6,6 @@ import chainlit as cl
 from openai import AsyncOpenAI
 
 from utils.event_handler import EventHandler
-from utils.openai_utils import initialize_openai_client
 
 
 @cl.on_chat_start

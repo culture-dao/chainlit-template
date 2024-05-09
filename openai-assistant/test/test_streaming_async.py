@@ -1,3 +1,9 @@
+"""
+This is the testing framework for the new OAI async event handler.
+
+We mock out the CL calls here, that final integration test is test/chainlit_tests/streaming.py
+"""
+
 import logging
 import unittest
 from unittest.mock import MagicMock, patch, AsyncMock
@@ -24,7 +30,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         self.thread = None
 
     @patch('chainlit.Message', new_callable=MagicMock)
-    async def testStreaming(self, mock_message):
+    async def testStreamingMocked(self, mock_message):
         mock_message.id = '1234'
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
@@ -81,8 +87,6 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(e.message.content, "The")
 
         mock_cl_message.return_value.update.assert_called_once()
-
-
 
     @patch('chainlit.Step', new_callable=MagicMock)
     async def test_process_file_search_tool_call(self, mock_cl_step):

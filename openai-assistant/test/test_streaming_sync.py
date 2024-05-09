@@ -1,3 +1,6 @@
+"""
+This is a basic example that follows the OAI template. It doesn't interact w Chainlit at all.
+"""
 import unittest
 
 import openai
@@ -13,7 +16,6 @@ class EventHandler(AssistantEventHandler):
     @override
     def on_text_created(self, text) -> None:
         print(f"\nassistant > ", end="", flush=True)
-
 
     @override
     def on_text_delta(self, delta, snapshot):
