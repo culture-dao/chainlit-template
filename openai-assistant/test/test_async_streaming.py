@@ -1,20 +1,18 @@
-import unittest
 import logging
+import unittest
 from typing import Dict
+from unittest.mock import MagicMock, patch, AsyncMock
 
-import chainlit
+import chainlit as cl
 import openai
 from dotenv import load_dotenv
 from openai.lib.streaming import AsyncAssistantEventHandler
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.assistant_stream_event import ThreadMessageDelta
-from openai.types.beta.threads import Run, Text, TextDelta, Message, MessageDeltaEvent
-from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads import MessageDelta, Message
+from openai.types.beta.threads import Run, Text, TextDelta, MessageDeltaEvent, TextDeltaBlock, TextContentBlock
+from openai.types.beta.threads.runs import RunStep
 from typing_extensions import override
-from unittest.mock import MagicMock, patch, AsyncMock
-
-import chainlit as cl
 
 load_dotenv()
 
@@ -56,20 +54,14 @@ class EventHandler(AsyncAssistantEventHandler):
         await self.message_references[message.id].send()
 
     @override
-    async def on_text_delta(self, delta: TextDelta, snapshot: Text):
-        print(delta.value, end="", flush=True)
+    async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
+        print(delta.content[0].text.value, end="", flush=True)
 
-        event_message_id = self.current_event.data.id
-
-        if event_message_id in self.message_references:
-            logging.info("Found the message... updating!")
-            self.message_references[event_message_id] = self.message
-        else:
-            logging.info(f'Expected {event_message_id}')
-            logging.info(self.message_references)
+        if snapshot.id in self.message_references:
+            self.message_references[snapshot.id] = self.message
 
         # Update the message content
-        self.message.content = snapshot.value
+        self.message.content = snapshot.content[0].text.value
         await self.message.update()
 
     @override
@@ -100,7 +92,6 @@ class EventHandler(AsyncAssistantEventHandler):
         else:
             self.event_map[event_type] = 1
 
-
     @property
     def current_event(self) -> AssistantStreamEvent | None:
         return self._current_event
@@ -112,7 +103,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
 @patch('chainlit.Message', new_callable=MagicMock)
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
-    async def asyncSetUp(self, ) -> None:
+    async def asyncSetUp(self) -> None:
         self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
         self.client = openai.AsyncOpenAI()
         self.thread = None
@@ -140,16 +131,41 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         mock_message.assert_called_with(content='')  # Constructor
         mock_message.return_value.send.assert_called_once()
 
-        delta = TextDelta(value="The")
-        text: Text = Text(value='The', annotations=[])
+        # Make sure message is set on message creation
+        self.assertIsNotNone(e.message)
+
+        delta: MessageDelta = MessageDelta(
+            content=[TextDeltaBlock(
+                index=0,
+                type="text",
+                text=TextDelta(value="The")
+            )],
+            role="assistant"
+        )
+
+        text_block: TextContentBlock = TextContentBlock(type='text', text=Text(value="The", annotations=[]))
+
+        message: Message = Message(
+            id="123",
+            assistant_id=self.assistant_id,
+            content=[text_block],
+            object="thread.message",
+            role="assistant",
+            created_at=1657898745,
+            thread_id="456",
+            status='in_progress'
+        )
 
         e.current_event = ThreadMessageDelta(
             data=MessageDeltaEvent(id="123", delta=MessageDelta(value="The"), object="thread.message.delta"),
-             event="thread.message.delta")
-        logging.info(e.current_event.data.id)
-        await e.on_text_delta(delta, text)
+            event="thread.message.delta")
+
+        await e.on_message_delta(delta, message)
         self.assertEqual(e.message.content, "The")
 
         mock_message.return_value.update.assert_called_once()
 
         self.assertEqual(len(e.message_references), 1)
+        self.assertIn('123', e.message_references)
+        self.assertIs(e.message_references['123'], e.message)
+
