@@ -20,20 +20,14 @@ class EventHandler(AsyncAssistantEventHandler):
         self.event_map = {}  # for debugging
         self.run: Run | None = None
         self.run_step: RunStep | None = None
-        self.message_content: str | None = None
         self.message_references: Dict[str, cl.Message] = {}
         self.message: cl.Message | None = None
         self.current_event: AssistantStreamEvent | None = None
 
-    async def on_text_created(self, text: Text) -> str:
-        self.message_content = text.value
-
+    async def on_text_created(self, text: Text) -> None:
         print("\nassistant > ", end="", flush=True)
 
-        return self.message_content
-
     async def on_message_created(self, message: Message) -> None:
-
         self.message = cl.Message(content='')
 
         message_id = message.id
@@ -56,7 +50,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_tool_call_created(self, tool_call):
         print(f"\nassistant > {tool_call.type}\n", flush=True)
-        if tool_call.type == 'file search':
+        if tool_call.type == 'file_search':
             print("Retrieving information")
 
     async def on_tool_call_delta(self, tool_call: ToolCallDelta, snapshot):
@@ -66,7 +60,7 @@ class EventHandler(AsyncAssistantEventHandler):
             pass
 
     async def on_tool_call_done(self, tool_call: ToolCall) -> None:
-        if tool_call.type == 'file search':
+        if tool_call.type == 'file_search':
             print("Retrieved information")
         elif tool_call.type == 'code_interpreter':
             if tool_call.code_interpreter.input:
