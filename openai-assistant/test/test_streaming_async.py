@@ -36,15 +36,15 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         ) as stream:
             await stream.until_done()
 
-    async def testMessageDelta(self, mock_message):
-        mock_message.return_value.send = AsyncMock()
-        mock_message.return_value.update = AsyncMock()
+    async def testMessageDelta(self, mock_cl_message):
+        mock_cl_message.return_value.send = AsyncMock()
+        mock_cl_message.return_value.update = AsyncMock()
         e = EventHandler()
         m = Message.model_construct(text="The", id="123")
         await e.on_message_created(m)
 
-        mock_message.assert_called_with(content='')  # Constructor
-        mock_message.return_value.send.assert_called_once()
+        mock_cl_message.assert_called_with(content='')  # Constructor
+        mock_cl_message.return_value.send.assert_called_once()
 
         # Make sure message is set on message creation
         self.assertIsNotNone(e.message)
@@ -78,7 +78,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         await e.on_message_delta(delta, message)
         self.assertEqual(e.message.content, "The")
 
-        mock_message.return_value.update.assert_called_once()
+        mock_cl_message.return_value.update.assert_called_once()
 
         self.assertEqual(len(e.message_references), 1)
         self.assertIn('123', e.message_references)
