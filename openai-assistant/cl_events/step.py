@@ -208,7 +208,7 @@ async def step_logic(
 
         if run.status == "completed" and thread_message.content is None:
             thread_message.content = "An error occurred, please try again later or contact support"
-            await process_thread_message(message_references, thread_message)
+            await process_thread_message(message_references, thread_message, client)
 
         if run.status in ["cancelled", "failed", "completed", "expired"]:
             break
