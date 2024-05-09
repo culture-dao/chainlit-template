@@ -5,7 +5,7 @@ import chainlit as cl
 from openai.lib.streaming import AsyncAssistantEventHandler
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.threads import Run, Text, Message, MessageDelta
-from openai.types.beta.threads.runs import RunStep
+from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCallDeltaObject, FunctionToolCallDelta
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -64,6 +64,17 @@ class EventHandler(AsyncAssistantEventHandler):
                 for output in delta.code_interpreter.outputs:
                     if output.type == "logs":
                         print(f"\n{output.logs}", flush=True)
+
+    async def on_run_step_delta(self, delta: RunStepDelta, snapshot: RunStep) -> None:
+        if isinstance(delta.step_details.type, ToolCallDeltaObject):
+            for tool_call in delta.step_details.tool_calls:
+                if isinstance(tool_call,FunctionToolCallDelta):
+                    # check if step status is pending,
+                    # call tool, submit results &c..
+                    pass
+
+
+
 
     async def on_run_step_done(self, run):
         logging.info(self.event_map)
