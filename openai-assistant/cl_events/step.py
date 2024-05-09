@@ -12,6 +12,7 @@ from openai.types.beta.threads import (
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
+from utils.event_handler import EventHandler
 from utils.annotations import OpenAIAdapter
 
 
@@ -154,64 +155,13 @@ async def step_logic(
 
     assistant_id = os.environ.get("ASSISTANT_ID")
 
-    # Create the run
-    run = await client.beta.threads.runs.create(
-        thread_id=thread_id, assistant_id=assistant_id
-    )
-
-    message_references = {}  # type: Dict[str, cl.Message]
-    step_references = {}  # type: Dict[str, cl.Step]
-    tool_outputs = []
-    # Periodically check for updates
-    while True:
-        thread_message = None
-
-        run = await client.beta.threads.runs.retrieve(
-            thread_id=thread_id, run_id=run.id
-        )
-
-        # Fetch the run steps
-        run_steps = await client.beta.threads.runs.steps.list(
-            thread_id=thread_id, run_id=run.id, order="asc"
-        )
-
-        # ThreadRunStepCreated
-
-        for step in run_steps.data:
-            # Fetch step details
-            run_step = await client.beta.threads.runs.steps.retrieve(
-                thread_id=thread_id, run_id=run.id, step_id=step.id
-            )
-            step_details = run_step.step_details
-            # Update step content in the Chainlit UI
-
-            # Message Creation Handler
-            if step_details.type == "message_creation":
-                thread_message = await client.beta.threads.messages.retrieve(
-                    message_id=step_details.message_creation.message_id,
-                    thread_id=thread_id,
-                )
-                await process_thread_message(message_references, thread_message, client)
-            await handle_tool_call(step_details, step_references, step, tool_outputs)
-
-            if (
-                    run.status == "requires_action"
-                    and run.required_action.type == "submit_tool_outputs"
-            ):
-                await client.beta.threads.runs.submit_tool_outputs(
-                    thread_id=thread_id,
-                    run_id=run.id,
-                    tool_outputs=tool_outputs,
-                )
-
-        await cl.sleep(2)  # Refresh every 2 seconds
-
-        if run.status == "completed" and thread_message.content is None:
-            thread_message.content = "An error occurred, please try again later or contact support"
-            await process_thread_message(message_references, thread_message, client)
-
-        if run.status in ["cancelled", "failed", "completed", "expired"]:
-            break
+    async with client.beta.threads.runs.stream(
+            thread_id=thread_id,
+            assistant_id=assistant_id,
+            instructions="Please address the user as Jane Doe. The user has a premium account.",
+            event_handler=EventHandler(),
+    ) as stream:
+        await stream.until_done()
 
 
 async def process_tool_call(

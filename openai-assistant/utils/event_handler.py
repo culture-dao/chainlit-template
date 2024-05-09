@@ -33,9 +33,11 @@ class EventHandler(AsyncAssistantEventHandler):
         cl_message = cl.Message(content='')
         await cl_message.send()
         self.message_references[message.id] = cl_message
+        self.message = cl_message
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
         print(delta.content[0].text.value, end="", flush=True)
+        logging.info(snapshot.content[0].text.value)
 
         if snapshot.id in self.message_references:
             self.message_references[snapshot.id] = self.message

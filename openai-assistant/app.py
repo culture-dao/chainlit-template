@@ -11,6 +11,7 @@ from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.step import step_logic
 from utils.openai_utils import initialize_openai_client
+from utils.event_handler import  EventHandler
 
 logging.basicConfig(level=logging.INFO)
 
