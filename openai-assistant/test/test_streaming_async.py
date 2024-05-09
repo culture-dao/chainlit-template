@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from openai.types.beta.assistant_stream_event import ThreadMessageDelta
 from openai.types.beta.threads import MessageDelta, Message
 from openai.types.beta.threads import Text, TextDelta, MessageDeltaEvent, TextDeltaBlock, TextContentBlock
+from openai.types.beta.threads.runs import FileSearchToolCall
 
 from utils.event_handler import EventHandler
 
@@ -16,13 +17,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@patch('chainlit.Message', new_callable=MagicMock)
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
         self.client = openai.AsyncOpenAI()
         self.thread = None
 
+    @patch('chainlit.Message', new_callable=MagicMock)
     async def testStreaming(self, mock_message):
         mock_message.id = '1234'
         mock_message.return_value.send = AsyncMock()
@@ -36,6 +37,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         ) as stream:
             await stream.until_done()
 
+    @patch('chainlit.Message', new_callable=MagicMock)
     async def testMessageDelta(self, mock_cl_message):
         mock_cl_message.return_value.send = AsyncMock()
         mock_cl_message.return_value.update = AsyncMock()
@@ -84,3 +86,12 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         self.assertIn('123', e.message_references)
         self.assertIs(e.message_references['123'], e.message)
 
+    @patch('chainlit.Step', new_callable=MagicMock)
+    async def test_process_file_search_tool_call(self, mock_cl_step):
+        e = EventHandler()
+        tool_call = FileSearchToolCall(
+            id='1234',
+            file_search={},
+            type='file_search'
+        )
+        await e.on_tool_call_created(tool_call)
