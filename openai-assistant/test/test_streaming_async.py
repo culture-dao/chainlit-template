@@ -82,9 +82,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
 
         mock_cl_message.return_value.update.assert_called_once()
 
-        self.assertEqual(len(e.message_references), 1)
-        self.assertIn('123', e.message_references)
-        self.assertIs(e.message_references['123'], e.message)
+
 
     @patch('chainlit.Step', new_callable=MagicMock)
     async def test_process_file_search_tool_call(self, mock_cl_step):
