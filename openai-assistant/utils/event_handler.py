@@ -56,26 +56,26 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_tool_call_created(self, tool_call):
         print(f"\nassistant > {tool_call.type}\n", flush=True)
-
-    async def on_tool_call_delta(self, delta: ToolCallDelta, snapshot):
-        if delta.type == 'file search':
+        if tool_call.type == 'file search':
             print("Retrieving information")
-        elif delta.type == 'code_interpreter':
-            if delta.code_interpreter.input:
-                print(delta.code_interpreter.input, end="", flush=True)
-            if delta.code_interpreter.outputs:
-                print("\n\noutput >", flush=True)
-                for output in delta.code_interpreter.outputs:
-                    if output.type == "logs":
-                        print(f"\n{output.logs}", flush=True)
-        elif delta.type == 'function':
-            # function handler
+
+    async def on_tool_call_delta(self, tool_call: ToolCallDelta, snapshot):
+        # this might be better handled on create?
+        if tool_call.type == 'function':
+            # function handler, check pending status, submit tool outputs
             pass
 
-    @override
     async def on_tool_call_done(self, tool_call: ToolCall) -> None:
         if tool_call.type == 'file search':
             print("Retrieved information")
+        elif tool_call.type == 'code_interpreter':
+            if tool_call.code_interpreter.input:
+                print(tool_call.code_interpreter.input, end="", flush=True)
+            if tool_call.code_interpreter.outputs:
+                print("\n\noutput >", flush=True)
+                for output in tool_call.code_interpreter.outputs:
+                    if output.type == "logs":
+                        print(f"\n{output.logs}", flush=True)
 
     async def on_run_step_done(self, run):
         logging.info(self.event_map)
