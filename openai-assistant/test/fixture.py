@@ -1,5 +1,5 @@
 from openai.types.beta.threads import (
-    Text, Message, TextContentBlock
+    Text, Message, TextContentBlock, MessageContent
 )
 from openai.types.beta.threads.file_citation_annotation import FileCitation, FileCitationAnnotation
 
@@ -112,25 +112,25 @@ message_with_multiple_annotations_no_quotes = Message.model_construct(
     role='assistant', run_id='run_BwCbncan9K7k9BvjLAmDynk8',
     thread_id='thread_bN7e6WVAa4WiJP1dXT0AeNkR')
 
-message_with_multiple_annotations = ThreadMessage(
+message_with_multiple_annotations = Message(
     id='message_with_multiple_annotations',
     assistant_id='test_fixtures',
     content=[
-        MessageContentText(
-            text=Text(annotations=[TextAnnotationFileCitation(end_index=649,
-                                                              file_citation=TextAnnotationFileCitationFileCitation(
+        MessageContent(
+            text=Text(annotations=[FileCitationAnnotation(end_index=649,
+                                                              file_citation=FileCitation(
                                                                   file_id='file-80O35GgEFpRE38EhT2HYe6qt',
                                                                   quote='Quote goes here'), start_index=612,
                                                               text='【11:0†Supplemental Agreement - Other】',
                                                               type='file_citation'),
-                                   TextAnnotationFileCitation(end_index=980,
-                                                              file_citation=TextAnnotationFileCitationFileCitation(
+                                   FileCitationAnnotation(end_index=980,
+                                                              file_citation=FileCitation(
                                                                   file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
                                                                   quote='Quote goes here'), start_index=944,
                                                               text='【11:2†VA-AFGE-2023-Master-Agreement】',
                                                               type='file_citation'),
-                                   TextAnnotationFileCitation(end_index=1301,
-                                                              file_citation=TextAnnotationFileCitationFileCitation(
+                                   FileCitationAnnotation(end_index=1301,
+                                                              file_citation=FileCitation(
                                                                   file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
                                                                   quote='Quote goes here'), start_index=1265,
                                                               text='【11:4†VA-AFGE-2023-Master-Agreement】',
@@ -140,11 +140,11 @@ message_with_multiple_annotations = ThreadMessage(
     role='assistant', run_id='run_BwCbncan9K7k9BvjLAmDynk8',
     thread_id='thread_bN7e6WVAa4WiJP1dXT0AeNkR')
 
-message_with_no_quote = ThreadMessage(
+message_with_no_quote = Message(
     id='msg_yBtMOMDop6UBg5d9QfcyszSH',
     assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
-    content=[MessageContentText(text=Text(annotations=[TextAnnotationFileCitation(end_index=799,
-                                                                                  file_citation=TextAnnotationFileCitationFileCitation(
+    content=[MessageContent(text=Text(annotations=[FileCitationAnnotation(end_index=799,
+                                                                                  file_citation=FileCitation(
                                                                                       file_id='file-80O35GgEFpRE38EhT2HYe6qt',
                                                                                       quote=''), start_index=762,
                                                                                   text='【11:0†Supplemental Agreement - Other】',
@@ -158,6 +158,6 @@ raw_user_data = {'id': '1234567890', 'email': 'testuser@nowhere.com', 'verified_
                  'name': 'Test User', 'given_name': 'Test', 'family_name': 'Users', 'picture': '',
                  'locale': 'en'}
 
-citation = TextAnnotationFileCitationFileCitation(
+citation = FileCitation(
     file_id='file-uYryyZwgG9RMrg0CLfsUijYX',
     quote='Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval')
