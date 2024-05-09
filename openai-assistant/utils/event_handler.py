@@ -28,14 +28,14 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_message_created(self, message: Message) -> None:
         # Init empty message in UX
-        logging.info('on_message_created')
+        logging.info(f'on_message_created: {message.id}')
         cl_message = cl.Message(content='')
         await cl_message.send()
         self.message = cl_message
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
         # print(delta.content[0].text.value, end="", flush=True)
-        logging.info(delta.content[0].text.value)
+        logging.info(f'{snapshot.id}: {delta.content[0].text.value}')
         self.message.content = snapshot.content[0].text.value
         await self.message.update()
 
@@ -45,6 +45,7 @@ class EventHandler(AsyncAssistantEventHandler):
         if tool_call.type == 'file_search':
             print("Retrieving information")
 
+    # Not used?
     async def on_tool_call_delta(self, tool_call: ToolCallDelta, snapshot):
         logging.info('on_tool_call_delta')
         # this might be better handled on create?
@@ -75,6 +76,8 @@ class EventHandler(AsyncAssistantEventHandler):
             self.event_map[event_type] += 1
         else:
             self.event_map[event_type] = 1
+        if type(event).__name__ != 'ThreadMessageDelta':
+            pass
 
     @property
     def current_event(self) -> AssistantStreamEvent | None:
