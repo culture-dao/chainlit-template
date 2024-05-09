@@ -39,13 +39,10 @@ async def upload_files(files: List[Element]) -> List[VectorStoreFile]:
     file_ids = []
     for file in files:
         # TODO: Use batch polling here
-        uploaded_file: VectorStoreFile = await (client.beta.vector_stores
-                                                .files.upload_and_poll(vector_store_id=default_data_store,
-                                                                       file=Path(file.path))
+        uploaded_file: VectorStoreFile = await (client.beta.vector_stores.files.upload_and_poll(
+            vector_store_id=default_data_store,
+            file=Path(file.path))
                                                 )
-        # uploaded_file = await client.files.create(
-        #     file=Path(file.path), purpose="assistants"
-        # )
         file_ids.append(uploaded_file)
     return file_ids
 
