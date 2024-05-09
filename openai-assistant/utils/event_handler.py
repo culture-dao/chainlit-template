@@ -20,7 +20,6 @@ class EventHandler(AsyncAssistantEventHandler):
         self.event_map = {}  # for debugging
         self.run: Run | None = None
         self.run_step: RunStep | None = None
-        self.message_references: Dict[str, cl.Message] = {}
         self.message: cl.Message | None = None
         self.current_event: AssistantStreamEvent | None = None
 
@@ -29,24 +28,16 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_message_created(self, message: Message) -> None:
         # Init empty message in UX
-
         cl_message = cl.Message(content='')
         await cl_message.send()
-        self.message_references[message.id] = cl_message
         self.message = cl_message
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
         print(delta.content[0].text.value, end="", flush=True)
         logging.info(snapshot.content[0].text.value)
 
-        if snapshot.id in self.message_references:
-            self.message_references[snapshot.id] = self.message
-            # Update the message content
-            self.message.content = snapshot.content[0].text.value
-            await self.message.update()
-        else:
-            # Something went wrong, we missed a creation event
-            raise Exception
+        self.message.content = snapshot.content[0].text.value
+        await self.message.update()
 
     async def on_tool_call_created(self, tool_call):
         print(f"\nassistant > {tool_call.type}\n", flush=True)
