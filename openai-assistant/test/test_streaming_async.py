@@ -18,7 +18,7 @@ from openai.types.beta.threads.runs import FileSearchToolCall
 from utils.event_handler import EventHandler
 from utils.openai_utils import get_playground_url, initialize_openai_client
 
-load_dotenv(dotenv_path='../', override=True)
+# load_dotenv(dotenv_path='../', override=True)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         self.assistant_id = 'asst_2lanl1dvlTkCpOofxiPrHvzr'
-        self.client = initialize_openai_client()
+        self.client = initialize_openai_client('../.env')
         self.thread = None
 
     @patch('chainlit.Message', new_callable=MagicMock)
