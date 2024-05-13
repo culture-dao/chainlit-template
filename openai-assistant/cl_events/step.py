@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from typing import List, Dict, Any
@@ -155,13 +156,20 @@ async def step_logic(
 
     assistant_id = os.environ.get("ASSISTANT_ID")
 
+    e = EventHandler()
+
     async with client.beta.threads.runs.stream(
             thread_id=thread_id,
             assistant_id=assistant_id,
             instructions="Please address the user as Jane Doe. The user has a premium account.",
-            event_handler=EventHandler(),
+            event_handler=e,
     ) as stream:
         await stream.until_done()
+
+    final_message = e.openAIMessage
+    content_dict = final_message.content if isinstance(final_message.content, dict) else {
+        "content": final_message.content}
+    await process_thread_message(content_dict, final_message, client)
 
 
 async def process_tool_call(

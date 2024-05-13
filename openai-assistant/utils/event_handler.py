@@ -21,6 +21,7 @@ class EventHandler(AsyncAssistantEventHandler):
         self.run: Run | None = None
         self.run_step: RunStep | None = None
         self.message: cl.Message | None = None
+        self.openAIMessage: Message | None = None
         self.current_event: AssistantStreamEvent | None = None
 
     async def on_text_created(self, text: Text) -> None:
@@ -35,6 +36,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
         # print(delta.content[0].text.value, end="", flush=True)
+        self.openAIMessage = snapshot
         logging.info(f'{snapshot.id}: {delta.content[0].text.value}')
         self.message.content = snapshot.content[0].text.value
         await self.message.update()

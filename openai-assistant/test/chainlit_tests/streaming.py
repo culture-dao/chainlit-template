@@ -1,16 +1,16 @@
 """
 This is for testing the annotations or whatever other display functionality is needed
 """
-
+import logging
 import chainlit as cl
-from openai import AsyncOpenAI
-
 from utils.event_handler import EventHandler
+from utils.openai_utils import initialize_openai_client
+logging.basicConfig(level=logging.INFO)
 
 
 @cl.on_chat_start
 async def on_chat_start():
-    client = AsyncOpenAI()
+    client = initialize_openai_client()
     thread = await client.beta.threads.create()
     async with client.beta.threads.runs.stream(
             thread_id=thread.id,
