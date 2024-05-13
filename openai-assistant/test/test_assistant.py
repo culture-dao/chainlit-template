@@ -6,17 +6,16 @@ from dotenv import load_dotenv
 
 from create_assistant import retrieve_assistant
 from chainlit_utils import DictToObject
-
-load_dotenv()
+from utils.openai_utils import initialize_openai_client
 
 
 class TestAssistantAsync(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
-        self.client = openai.AsyncClient()
+        self.client = initialize_openai_client('../.env')
 
     async def test_retrieve_assistant_valid(self):
-        result = await retrieve_assistant("asst_GPa9ziLBlAg4gmZXCq6L5nF9")
+        result = await retrieve_assistant("asst_2lanl1dvlTkCpOofxiPrHvzr")
         assert result
 
     async def test_retrieve_assistant_invalid(self):
