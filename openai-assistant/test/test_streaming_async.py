@@ -16,8 +16,9 @@ from openai.types.beta.threads import Text, TextDelta, MessageDeltaEvent, TextDe
 from openai.types.beta.threads.runs import FileSearchToolCall
 
 from utils.event_handler import EventHandler
+from utils.openai_utils import get_playground_url, initialize_openai_client
 
-load_dotenv()
+load_dotenv(dotenv_path='../', override=True)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        self.assistant_id = 'asst_GPa9ziLBlAg4gmZXCq6L5nF9'
-        self.client = openai.AsyncOpenAI()
+        self.assistant_id = 'asst_2lanl1dvlTkCpOofxiPrHvzr'
+        self.client = initialize_openai_client()
         self.thread = None
 
     @patch('chainlit.Message', new_callable=MagicMock)
@@ -35,6 +36,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         mock_message.return_value.send = AsyncMock()
         mock_message.return_value.update = AsyncMock()
         self.thread = await self.client.beta.threads.create()
+        logger.info(get_playground_url(self.assistant_id, self.thread.id))
         async with self.client.beta.threads.runs.stream(
                 thread_id=self.thread.id,
                 assistant_id=self.assistant_id,
