@@ -13,11 +13,18 @@ logging.basicConfig(level=logging.INFO)
 async def on_chat_start():
     client = initialize_openai_client()
     thread = await client.beta.threads.create()
+
+    question = 'What is the policy on annual leave?'
+
+    # Make sure it has an initial message, so it does not hallucinate
     await client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
-        content="What is the policy on annual leave?.",
+        content=question,
     )
+
+    cl_message = cl.Message(content=question, author="User")
+    await cl_message.send()
 
     async with client.beta.threads.runs.stream(
             thread_id=thread.id,
