@@ -5,7 +5,7 @@ import logging
 import chainlit as cl
 from utils.event_handler import EventHandler
 from utils.openai_utils import initialize_openai_client
-
+from cl_events.step import process_thread_message
 logging.basicConfig(level=logging.INFO)
 
 
@@ -26,13 +26,20 @@ async def on_chat_start():
     cl_message = cl.Message(content=question, author="User")
     await cl_message.send()
 
+    e = EventHandler()
+
     async with client.beta.threads.runs.stream(
             thread_id=thread.id,
             assistant_id='asst_GPa9ziLBlAg4gmZXCq6L5nF9',
             instructions="Please address the user as Jane Doe. The user has a premium account.",
-            event_handler=EventHandler()
+            event_handler=e
     ) as stream:
         await stream.until_done()
+
+    final_message = e.openAIMessage
+    content_dict = final_message.content if isinstance(final_message.content, dict) else {
+        "content": final_message.content}
+    await process_thread_message(content_dict, final_message, client)
 
 
 if __name__ == "__main__":
