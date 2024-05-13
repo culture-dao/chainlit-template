@@ -15,7 +15,7 @@ load_dotenv(dotenv_path='../', override=True)
 
 @cl.on_chat_start
 async def on_chat_start():
-    client = initialize_openai_client()
+    client = initialize_openai_client('../../.env')
     thread = await client.beta.threads.create()
 
     question = 'What is the policy on annual leave?'
