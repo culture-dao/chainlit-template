@@ -14,6 +14,7 @@ from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
 from utils.event_handler import EventHandler
 from utils.annotations import OpenAIAdapter
+from utils.openai_utils import initialize_openai_client
 
 
 async def process_thread_message(
@@ -155,14 +156,13 @@ async def step_logic(
         thread_id=thread_id, role="user", content=human_query, attachments=file_ids
     )
 
-    assistant_id = os.environ.get("ASSISTANT_ID")
+    assistant_id = initialize_openai_client()
 
     e = EventHandler()
 
     async with client.beta.threads.runs.stream(
             thread_id=thread_id,
             assistant_id=assistant_id,
-            instructions="Please address the user as Jane Doe. The user has a premium account.",
             event_handler=e,
     ) as stream:
         await stream.until_done()
