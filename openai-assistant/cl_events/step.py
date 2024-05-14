@@ -24,7 +24,8 @@ async def process_thread_message(
     # Loop through each message content with the content and index
     for idx, content_message in enumerate(thread_message.content):
         # Generate a unique ID for each message using the thread ID and index
-        id = thread_message.id + str(idx)
+        # id = thread_message.id + str(idx)
+        id = thread_message.id
 
         # Check if the message content is of type text
         if isinstance(content_message, MessageContentText):

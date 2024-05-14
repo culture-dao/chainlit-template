@@ -31,8 +31,8 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_message_created(self, message: Message) -> None:
         # Init empty message in UX
         logging.info(f'on_message_created: {message.id}')
-        self.message_references[message.id] = message
         cl_message = cl.Message(content='')
+        self.message_references[message.id] = cl_message
         await cl_message.send()
         self.message = cl_message
 
@@ -40,7 +40,11 @@ class EventHandler(AsyncAssistantEventHandler):
         # print(delta.content[0].text.value, end="", flush=True)
         self.openAIMessage = snapshot
         logging.info(f'{snapshot.id}: {delta.content[0].text.value}')
+        if len(delta.content) > 1:
+            logging.error("Content length was more than 1!")
+            raise ValueError("Content length must be 1 or less.")
         self.message.content = snapshot.content[0].text.value
+        self.message_references[snapshot.id].content = snapshot.content[0].text.value
         await self.message.update()
 
     async def on_tool_call_created(self, tool_call):
