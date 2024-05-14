@@ -96,7 +96,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_run_step_done(self, run):
         logging.info(self.event_map)
-        logging.info(self.message)
+        logging.info(f"Message on run step done: {self.message}")
 
     async def on_event(self, event):
         event_type = type(event).__name__
