@@ -59,10 +59,14 @@ class EventHandler(AsyncAssistantEventHandler):
         # Update the message in the UI
         await self.message.update()
 
+    @cl.step
     async def on_tool_call_created(self, tool_call):
+        step = cl.context.current_step
+        step.name = tool_call.type
         logging.info('on_tool_call_created')
         print(f"\nassistant > {tool_call.type}\n", flush=True)
         if tool_call.type == 'file_search':
+            step.input = "Retrieving information"
             print("Retrieving information")
 
     # Not used?
@@ -73,9 +77,13 @@ class EventHandler(AsyncAssistantEventHandler):
             # function handler, check pending status, submit tool outputs
             pass
 
+    @cl.step
     async def on_tool_call_done(self, tool_call: ToolCall) -> None:
+        step = cl.context.current_step
+
         logging.info('on_tool_call_done')
         if tool_call.type == 'file_search':
+            step.output = "Retrieved information"
             print("Retrieved information")
         elif tool_call.type == 'code_interpreter':
             if tool_call.code_interpreter.input:
