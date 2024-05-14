@@ -80,6 +80,7 @@ class EventHandler(AsyncAssistantEventHandler):
         if tool_call.type == 'file_search':
             step.input = "Retrieving information"
             print("Retrieving information")
+        await step.send()
 
     # Not used?
     async def on_tool_call_delta(self, tool_call: ToolCallDelta, snapshot):
@@ -116,9 +117,10 @@ class EventHandler(AsyncAssistantEventHandler):
                 for output in tool_call.code_interpreter.outputs:
                     if output.type == "logs":
                         print(f"\n{output.logs}", flush=True)
+        await step.update()
 
     async def on_run_step_done(self, run):
-        logging.info(f"{run.id}: {self.event_map}")
+        logging.info(f"on_run_step_done {run.id}: {self.event_map} -> {self.message}")
         logging.info(f"Message on run step done: {self.message}")
 
     @property
