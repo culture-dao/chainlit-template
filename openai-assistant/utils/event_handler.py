@@ -25,6 +25,16 @@ class EventHandler(AsyncAssistantEventHandler):
         self.openAIMessage: Message | None = None
         self.current_event: AssistantStreamEvent | None = None
 
+    async def on_run_step_created(self, run_step: RunStep):
+        logging.info(f"CREATED {run_step.id}")
+
+    async def on_event(self, event):
+        event_type = type(event).__name__
+        if event_type in self.event_map:
+            self.event_map[event_type] += 1
+        else:
+            self.event_map[event_type] = 1
+
     async def on_text_created(self, text: Text) -> None:
         logging.info('on_text_created')
 
@@ -43,7 +53,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
         # print(delta.content[0].text.value, end="", flush=True)
-        logging.info(f'{snapshot.id}: {delta.content[0].text.value}')
+        # logging.info(f'{snapshot.id}: {delta.content[0].text.value}')
 
         # This should probably be on some 'done' event
         self.openAIMessage = snapshot
@@ -59,11 +69,14 @@ class EventHandler(AsyncAssistantEventHandler):
         # Update the message in the UI
         await self.message.update()
 
-    @cl.step
+    async def on_text_done(self, text: Text) -> None:
+        pass
+
+    @cl.step()
     async def on_tool_call_created(self, tool_call):
         step = cl.context.current_step
         step.name = tool_call.type
-        logging.info('on_tool_call_created')
+        logging.info(f'on_tool_call_created {tool_call}')
         print(f"\nassistant > {tool_call.type}\n", flush=True)
         if tool_call.type == 'file_search':
             step.input = "Retrieving information"
@@ -80,8 +93,8 @@ class EventHandler(AsyncAssistantEventHandler):
     @cl.step
     async def on_tool_call_done(self, tool_call: ToolCall) -> None:
         step = cl.context.current_step
-
-        logging.info('on_tool_call_done')
+        step.name = tool_call.type
+        logging.info(f'on_tool_call_done {tool_call}')
         if tool_call.type == 'file_search':
             step.output = "Retrieved information"
             print("Retrieved information")
@@ -95,17 +108,9 @@ class EventHandler(AsyncAssistantEventHandler):
                         print(f"\n{output.logs}", flush=True)
 
     async def on_run_step_done(self, run):
-        logging.info(self.event_map)
+        logging.info(f"{run.id}: {self.event_map}")
         logging.info(f"Message on run step done: {self.message}")
 
-    async def on_event(self, event):
-        event_type = type(event).__name__
-        if event_type in self.event_map:
-            self.event_map[event_type] += 1
-        else:
-            self.event_map[event_type] = 1
-        if type(event).__name__ != 'ThreadMessageDelta':
-            pass
 
     @property
     def current_event(self) -> AssistantStreamEvent | None:
