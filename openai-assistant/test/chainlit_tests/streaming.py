@@ -14,6 +14,7 @@ load_dotenv(dotenv_path='../', override=True)
 
 assistant_id='asst_2lanl1dvlTkCpOofxiPrHvzr'
 
+
 @cl.on_chat_start
 async def on_chat_start():
     client = initialize_openai_client('../../.env')

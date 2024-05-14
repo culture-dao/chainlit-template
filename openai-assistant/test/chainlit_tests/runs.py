@@ -1,6 +1,7 @@
 """
 This is for testing the annotations or whatever other display functionality is needed
 """
+import asyncio
 import logging
 import chainlit as cl
 from dotenv import load_dotenv
@@ -36,6 +37,8 @@ async def on_chat_start():
     file_search_tool_call = FileSearchToolCall.model_construct(type='file_search')
 
     await e.on_tool_call_created(file_search_tool_call)
+    await asyncio.sleep(5)
+    await e.on_tool_call_done(file_search_tool_call)
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit
