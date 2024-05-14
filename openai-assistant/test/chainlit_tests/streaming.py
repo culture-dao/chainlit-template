@@ -40,10 +40,7 @@ async def on_chat_start():
     ) as stream:
         await stream.until_done()
 
-    final_message = e.openAIMessage
-    content_dict = final_message.content if isinstance(final_message.content, dict) else {
-        "content": final_message.content}
-    await process_thread_message(content_dict, final_message, client)
+    await process_thread_message(e.message_references, e.openAIMessage, client)
 
 
 if __name__ == "__main__":

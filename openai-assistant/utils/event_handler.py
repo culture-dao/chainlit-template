@@ -21,6 +21,7 @@ class EventHandler(AsyncAssistantEventHandler):
         self.run: Run | None = None
         self.run_step: RunStep | None = None
         self.message: cl.Message | None = None
+        self.message_references: Dict[str, cl.Message] | {} = {}
         self.openAIMessage: Message | None = None
         self.current_event: AssistantStreamEvent | None = None
 
@@ -30,6 +31,7 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_message_created(self, message: Message) -> None:
         # Init empty message in UX
         logging.info(f'on_message_created: {message.id}')
+        self.message_references[message.id] = message
         cl_message = cl.Message(content='')
         await cl_message.send()
         self.message = cl_message
