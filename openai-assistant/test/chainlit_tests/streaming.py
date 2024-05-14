@@ -18,7 +18,7 @@ async def on_chat_start():
     client = initialize_openai_client('../../.env')
     thread = await client.beta.threads.create()
 
-    question = 'What is the policy on annual leave?'
+    question = 'Search the docs and tell me something about it.'
 
     # Make sure it has an initial message, so it does not hallucinate
     await client.beta.threads.messages.create(
