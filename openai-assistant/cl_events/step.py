@@ -25,7 +25,6 @@ async def process_thread_message(
     for idx, content_message in enumerate(thread_message.content):
         # Generate a unique ID for each message using the thread ID and index
         # id = thread_message.id + str(idx)
-        id = thread_message.id
 
         # Check if the message content is of type text
         if isinstance(content_message, MessageContentText):
@@ -36,9 +35,9 @@ async def process_thread_message(
             content = adapter.get_content()
             elements = adapter.get_elements()
 
-            if id in message_references:
+            if thread_message.id in message_references:
                 # Retrieve the existing message from references
-                msg = message_references[id]
+                msg = message_references[thread_message.id]
 
                 # Update the message content with the new text
                 # msg.content = content_message.text.value
@@ -49,11 +48,11 @@ async def process_thread_message(
             else:
 
                 # If the message ID does not exist, create a new message and add it to the references
-                message_references[id] = cl.Message(
+                message_references[thread_message.id] = cl.Message(
                     author=thread_message.role, content=content, elements=elements
                 )
                 # Asynchronously send the newly created message
-                await message_references[id].send()
+                await message_references[thread_message.id].send()
         # Check if the message content is of type image file
         elif isinstance(content_message, MessageContentImageFile):
             # Retrieve the image file ID
@@ -71,15 +70,15 @@ async def process_thread_message(
             ]
 
             # If the message ID does not exist in the reference dictionary
-            if id not in message_references:
+            if thread_message.id not in message_references:
                 # Create a new message with no text content but including the image element
-                message_references[id] = cl.Message(
+                message_references[thread_message.id] = cl.Message(
                     author=thread_message.role,
                     content="",
                     elements=elements,
                 )
                 # Asynchronously send the newly created message
-                await message_references[id].send()
+                await message_references[thread_message.id].send()
         else:
             logger.error("unknown message type", type(content_message))
 
@@ -166,10 +165,7 @@ async def step_logic(
     ) as stream:
         await stream.until_done()
 
-    final_message = e.openAIMessage
-    content_dict = final_message.content if isinstance(final_message.content, dict) else {
-        "content": final_message.content}
-    await process_thread_message(content_dict, final_message, client)
+    await process_thread_message(e.message_references, e.openAIMessage, client)
 
 
 async def process_tool_call(
