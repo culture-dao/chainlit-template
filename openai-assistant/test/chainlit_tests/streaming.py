@@ -18,6 +18,7 @@ async def on_chat_start():
     client = initialize_openai_client('../../.env')
     thread = await client.beta.threads.create()
 
+    # The question to ask the model
     question = 'Search the docs and tell me something about it.'
 
     # Make sure it has an initial message, so it does not hallucinate
@@ -27,11 +28,13 @@ async def on_chat_start():
         content=question,
     )
 
+    # Send the original question and display as 'User'
     cl_message = cl.Message(content=question, author="User")
     await cl_message.send()
 
     e = EventHandler()
 
+    # Process the question and display the question in the UI
     async with client.beta.threads.runs.stream(
             thread_id=thread.id,
             assistant_id='asst_2lanl1dvlTkCpOofxiPrHvzr',
@@ -40,7 +43,8 @@ async def on_chat_start():
     ) as stream:
         await stream.until_done()
 
-    await process_thread_message(e.message_references, e.openAIMessage, client)
+    # After the message has been processed, handle the annotations
+    await process_thread_message(message_references=e.message_references, thread_message=e.openAIMessage, client=client)
 
 
 if __name__ == "__main__":

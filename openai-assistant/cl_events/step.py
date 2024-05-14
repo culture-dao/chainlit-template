@@ -24,22 +24,24 @@ async def process_thread_message(
     # Loop through each message content with the content and index
     for idx, content_message in enumerate(thread_message.content):
         # Generate a unique ID for each message using the thread ID and index
+        # Using this causes the streaming test to fail to annotate properly.
+        # The message ids match, but without the 'idx'.
         # id = thread_message.id + str(idx)
 
         # Check if the message content is of type text
         if isinstance(content_message, MessageContentText):
-            # If the message ID already exists in the reference dictionary
-
+            # Handle the annotations and get the updated content and elements
             adapter = OpenAIAdapter(thread_message)
             await adapter.main()
             content = adapter.get_content()
             elements = adapter.get_elements()
 
+            # If the message ID already exists in the reference dictionary
             if thread_message.id in message_references:
                 # Retrieve the existing message from references
                 msg = message_references[thread_message.id]
 
-                # Update the message content with the new text
+                # Update the message content with the new text and elements
                 # msg.content = content_message.text.value
                 msg.content = content
                 msg.elements = elements
