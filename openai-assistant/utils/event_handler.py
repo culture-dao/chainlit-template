@@ -77,7 +77,6 @@ class EventHandler(AsyncAssistantEventHandler):
         step = cl.context.current_step
         step.name = tool_call.type
         logging.info(f'on_tool_call_created {tool_call}')
-        print(f"\nassistant > {tool_call.type}\n", flush=True)
         if tool_call.type == 'file_search':
             step.input = "Retrieving information"
             print("Retrieving information")
@@ -92,9 +91,12 @@ class EventHandler(AsyncAssistantEventHandler):
 
     @cl.step
     async def on_tool_call_done(self, tool_call: ToolCall) -> None:
+        if self.current_event.data.type != 'tool_calls':
+            return
         step = cl.context.current_step
+
         step.name = tool_call.type
-        logging.info(f'on_tool_call_done {tool_call}')
+        logging.info(f'on_tool_call_done {tool_call}: {self.current_event.event}')
         if tool_call.type == 'file_search':
             step.output = "Retrieved information"
             print("Retrieved information")
