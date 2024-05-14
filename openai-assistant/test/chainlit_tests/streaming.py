@@ -36,6 +36,8 @@ async def on_chat_start():
     cl_message = cl.Message(content=question, author="User")
     await cl_message.send()
 
+    # Dummy message to start the step
+    await cl.Message(content='').send()
     e: EventHandler = EventHandler()
 
     # Process the question and display the question in the UI
@@ -46,8 +48,6 @@ async def on_chat_start():
             event_handler=e
     ) as stream:
         await stream.until_done()
-    pass
-
     # After the message has been processed, handle the annotations
     await process_thread_message(message_references=e.message_references, thread_message=e.openAIMessage, client=client)
 

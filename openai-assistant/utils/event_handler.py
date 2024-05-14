@@ -17,16 +17,17 @@ class EventHandler(AsyncAssistantEventHandler):
 
     def __init__(self):
         super().__init__()
+        self.message: cl.Message | None = None
         self.event_map = {}  # for debugging
         self.run: Run | None = None
         self.run_step: RunStep | None = None
-        self.message: cl.Message | None = None
+
         self.message_references: Dict[str, cl.Message] | {} = {}
         self.openAIMessage: Message | None = None
         self.current_event: AssistantStreamEvent | None = None
 
     async def on_run_step_created(self, run_step: RunStep):
-        logging.info(f"CREATED {run_step.id}")
+        logging.info(f"on_run_step_created {run_step.id}")
 
     async def on_event(self, event):
         event_type = type(event).__name__
@@ -41,7 +42,6 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_message_created(self, message: Message) -> None:
         logging.info(f'on_message_created: {message.id}')
 
-        # Init empty message in UX
         cl_message = cl.Message(content='')
 
         # Update the references so the OpenAI message id maps to the Chainlit message
@@ -72,7 +72,7 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_text_done(self, text: Text) -> None:
         pass
 
-    @cl.step()
+    @cl.step
     async def on_tool_call_created(self, tool_call):
         step = cl.context.current_step
         step.name = tool_call.type
@@ -91,9 +91,17 @@ class EventHandler(AsyncAssistantEventHandler):
 
     @cl.step
     async def on_tool_call_done(self, tool_call: ToolCall) -> None:
-        if self.current_event.data.type != 'tool_calls':
-            return
+        """
+        On tool call actually gets thrown three times during the normal course of events,
+        in the thread.run.step.completed event and once in the thread.run.completed event. Since the tool_call
+        doesn't get cleared between runs, we have to make sure we're not triggering it during the message creation runs.
+        """
         step = cl.context.current_step
+
+        if (isinstance(self.current_event.data, Run)  # thread.run.completed
+                or self.current_event.data.type != 'tool_calls'):  # thread.run.step.completed
+            await step.remove()
+            return
 
         step.name = tool_call.type
         logging.info(f'on_tool_call_done {tool_call}: {self.current_event.event}')
@@ -112,7 +120,6 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_run_step_done(self, run):
         logging.info(f"{run.id}: {self.event_map}")
         logging.info(f"Message on run step done: {self.message}")
-
 
     @property
     def current_event(self) -> AssistantStreamEvent | None:
