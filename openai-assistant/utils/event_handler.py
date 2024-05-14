@@ -17,7 +17,6 @@ class EventHandler(AsyncAssistantEventHandler):
 
     def __init__(self):
         super().__init__()
-        self.message: cl.Message | None = None
         self.event_map = {}  # for debugging
         self.run: Run | None = None
         self.run_step: RunStep | None = None
@@ -46,28 +45,27 @@ class EventHandler(AsyncAssistantEventHandler):
 
         # Update the references so the OpenAI message id maps to the Chainlit message
         self.message_references[message.id] = cl_message
-        self.message = cl_message
 
         # Send the empty message to the UI
         await cl_message.send()
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
-        # print(delta.content[0].text.value, end="", flush=True)
-        # logging.info(f'{snapshot.id}: {delta.content[0].text.value}')
 
         # This should probably be on some 'done' event
         self.openAIMessage = snapshot
 
-        # Make sure we only have 1 content object in  the lists
+        # Make sure we only have 1 content object in the lists
+        # OAI usually returns one, but let's not assume
         if len(delta.content) > 1:
             logging.error("Content length was more than 1!")
             raise ValueError("Content length must be 1 or less.")
 
-        self.message.content = snapshot.content[0].text.value
-        self.message_references[snapshot.id].content = snapshot.content[0].text.value
+        cl_message = self.message_references[snapshot.id]
+        cl_message.content = snapshot.content[0].text.value
 
-        # Update the message in the UI
-        await self.message.update()
+        # Update the message in the UI/persistence
+        await cl_message.update()
+        # self.message_references[snapshot.id] = cl_message
 
     async def on_text_done(self, text: Text) -> None:
         pass
@@ -76,7 +74,7 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_tool_call_created(self, tool_call):
         step = cl.context.current_step
         step.name = tool_call.type
-        logging.info(f'on_tool_call_created {tool_call}')
+        logging.info(f'\ton_tool_call_created {tool_call}')
         if tool_call.type == 'file_search':
             step.input = "Retrieving information"
             print("Retrieving information")
@@ -105,7 +103,7 @@ class EventHandler(AsyncAssistantEventHandler):
             return
 
         step.name = tool_call.type
-        logging.info(f'on_tool_call_done {tool_call}: {self.current_event.event}')
+        logging.info(f'\ton_tool_call_done {tool_call}: {self.current_event.event}')
         if tool_call.type == 'file_search':
             step.output = "Retrieved information"
             print("Retrieved information")
@@ -120,8 +118,7 @@ class EventHandler(AsyncAssistantEventHandler):
         await step.update()
 
     async def on_run_step_done(self, run):
-        logging.info(f"on_run_step_done {run.id}: {self.event_map} -> {self.message}")
-        logging.info(f"Message on run step done: {self.message}")
+        logging.info(f"on_run_step_done {run.id}: {self.event_map}")
 
     @property
     def current_event(self) -> AssistantStreamEvent | None:
