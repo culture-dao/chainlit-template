@@ -1,10 +1,6 @@
 import unittest
 
-import chainlit as cl
-import openai
-
 from create_assistant import retrieve_assistant
-from chainlit_utils import DictToObject
 from utils.openai_utils import initialize_openai_client
 
 
