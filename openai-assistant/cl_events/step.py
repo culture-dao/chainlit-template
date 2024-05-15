@@ -6,7 +6,7 @@ import chainlit as cl
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
-from utils.event_handler import EventHandler, process_thread_message
+from utils.event_handler import EventHandler
 from utils.openai_utils import initialize_openai_client
 from dotenv import load_dotenv
 
