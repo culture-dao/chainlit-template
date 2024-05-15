@@ -13,9 +13,6 @@ mailchimp-marketing = "^3.0.80"
 discord = "^2.3.2"
 
 
-[tool.poetry.group.dev.dependencies]
-appmap = {version = "^1.21.0", allow-prereleases = true}
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
