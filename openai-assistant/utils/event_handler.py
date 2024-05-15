@@ -19,16 +19,16 @@ class EventHandler(AsyncAssistantEventHandler):
     def __init__(self, client):
         super().__init__()
         self.event_map = {}  # for debugging
-        self.run: Run | None = None
-        self.run_step: RunStep | None = None
         self.message_references: Dict[str, cl.Message] | {} = {}
-        self.openAIMessage: Message | None = None
         self.client = client
 
     async def on_run_step_created(self, run_step: RunStep):
         logging.info(f"on_run_step_created {run_step.id}")
 
     async def on_event(self, event):
+        """
+        Using this for dev/debugging, so we know exactly what event sequence is going on in a run.
+        """
         event_type = type(event).__name__
         if event_type in self.event_map:
             self.event_map[event_type] += 1
@@ -36,6 +36,9 @@ class EventHandler(AsyncAssistantEventHandler):
             self.event_map[event_type] = 1
 
     async def on_text_created(self, text: Text) -> None:
+        """
+        Don't really care here, update the message on delta
+        """
         logging.info('on_text_created')
 
     async def on_message_created(self, message: Message) -> None:
@@ -50,10 +53,6 @@ class EventHandler(AsyncAssistantEventHandler):
         await cl_message.send()
 
     async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
-
-        # This should probably be on some 'done' event
-        self.openAIMessage = snapshot
-
         # Make sure we only have 1 content object in the lists
         # OAI usually returns one, but let's not assume
         if len(delta.content) > 1:
@@ -65,7 +64,6 @@ class EventHandler(AsyncAssistantEventHandler):
 
         # Update the message in the UI/persistence
         await cl_message.update()
-        # self.message_references[snapshot.id] = cl_message
 
     @cl.step
     async def on_tool_call_created(self, tool_call):
@@ -74,14 +72,14 @@ class EventHandler(AsyncAssistantEventHandler):
         logging.info(f'\ton_tool_call_created {tool_call}')
         if tool_call.type == 'file_search':
             step.input = "Retrieving information"
-            print("Retrieving information")
         await step.send()
 
     # Not used?
     async def on_tool_call_delta(self, tool_call: ToolCallDelta, snapshot):
         logging.info('on_tool_call_delta')
-        # this might be better handled on create?
+        # stub: this might be better handled on create?
         if tool_call.type == 'function':
+            # we don't use this, yet...
             # function handler, check pending status, submit tool outputs
             pass
 
@@ -119,8 +117,12 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_text_done(self, text: Text) -> None:
         # After the message has been processed and sent handle the annotations and update the message
-        await process_thread_message(message_references=self.message_references, thread_message=self.openAIMessage,
-                                     client=self.client)
+        message = self.current_event.data
+        await process_thread_message(
+            message_references=self.message_references,
+            thread_message=message,
+            client=self.client
+        )
 
     @property
     def current_event(self) -> AssistantStreamEvent | None:
