@@ -19,6 +19,7 @@ client = initialize_openai_client()
 
 logger = logging.getLogger("chainlit")
 
+ASSISTANT_NAME = "DEMO AGENT"
 
 @cl.oauth_callback
 async def oauth_callback(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: cl.User) -> \
@@ -33,7 +34,7 @@ async def on_chat_start_callback():
 
 @cl.author_rename
 def rename(orig_author: str):
-    rename_dict = {"assistant": "ASSISTANT NAME"}
+    rename_dict = {"Chatbot": ASSISTANT_NAME}
     return rename_dict.get(orig_author, orig_author)
 
 
@@ -42,7 +43,7 @@ async def on_chat_resume_callback(thread: ThreadDict):
     return await on_chat_resume_logic(thread, client)
 
 
-@cl.step(name="Chatbot", type="run", root=True)
+@cl.step(name=ASSISTANT_NAME, type="run", root=True)
 async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
     return await step_logic(thread_id, human_query, file_ids, client)
 
