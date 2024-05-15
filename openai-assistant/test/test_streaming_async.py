@@ -8,11 +8,8 @@ import logging
 import unittest
 from unittest.mock import MagicMock, patch, AsyncMock
 
-import chainlit
-import openai
 from chainlit.context import ChainlitContext, context_var
 from chainlit.session import HTTPSession
-from dotenv import load_dotenv
 from openai.types.beta.assistant_stream_event import ThreadMessageDelta
 from openai.types.beta.threads import MessageDelta, Message
 from openai.types.beta.threads import Text, TextDelta, MessageDeltaEvent, TextDeltaBlock, TextContentBlock
