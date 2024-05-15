@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional
+from typing import List
 
 import chainlit as cl
 from literalai import Thread
@@ -11,7 +11,7 @@ from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.step import step_logic
 from utils.openai_utils import initialize_openai_client
-from utils.event_handler import  EventHandler
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,7 +42,7 @@ async def on_chat_resume_callback(thread: ThreadDict):
     return await on_chat_resume_logic(thread, client)
 
 
-@cl.step(name="Assistant", type="run", root=True)
+@cl.step(name="Chatbot", type="run", root=True)
 async def run(thread_id: str, human_query: str, file_ids: List[str] = []):
     return await step_logic(thread_id, human_query, file_ids, client)
 
