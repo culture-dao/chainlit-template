@@ -22,7 +22,6 @@ class EventHandler(AsyncAssistantEventHandler):
         self.run_step: RunStep | None = None
         self.message_references: Dict[str, cl.Message] | {} = {}
         self.openAIMessage: Message | None = None
-        self.current_event: AssistantStreamEvent | None = None
         self.client = client
 
     async def on_run_step_created(self, run_step: RunStep):
