@@ -3,87 +3,12 @@ import os
 from datetime import datetime
 from typing import List, Dict, Any
 import chainlit as cl
-from chainlit.logger import logger
-from openai.types.beta.threads import (
-    Message as ThreadMessage,
-    TextContentBlock as MessageContentText,
-    ImageFileContentBlock as MessageContentImageFile
-)
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
-from utils.event_handler import EventHandler
-from utils.annotations import OpenAIAdapter
+from utils.event_handler import EventHandler, process_thread_message
 from utils.openai_utils import initialize_openai_client
-
-
-async def process_thread_message(
-        message_references: Dict[str, cl.Message],
-        thread_message: ThreadMessage,
-        client
-):
-    # Loop through each message content with the content and index
-    for idx, content_message in enumerate(thread_message.content):
-        # Generate a unique ID for each message using the thread ID and index
-        # Using this causes the streaming test to fail to annotate properly.
-        # The message ids match, but without the 'idx'.
-        # id = thread_message.id + str(idx)
-
-        # Check if the message content is of type text
-        if isinstance(content_message, MessageContentText):
-            # Handle the annotations and get the updated content and elements
-            adapter = OpenAIAdapter(thread_message)
-            await adapter.main()
-            content = adapter.get_content()
-            elements = adapter.get_elements()
-
-            # If the message ID already exists in the reference dictionary
-            if thread_message.id in message_references:
-                # Retrieve the existing message from references
-                msg = message_references[thread_message.id]
-
-                # Update the message content with the new text and elements
-                # msg.content = content_message.text.value
-                msg.content = content
-                msg.elements = elements
-
-                await msg.update()
-            else:
-
-                # If the message ID does not exist, create a new message and add it to the references
-                message_references[thread_message.id] = cl.Message(
-                    author=thread_message.role, content=content, elements=elements
-                )
-                # Asynchronously send the newly created message
-                await message_references[thread_message.id].send()
-        # Check if the message content is of type image file
-        elif isinstance(content_message, MessageContentImageFile):
-            # Retrieve the image file ID
-            image_id = content_message.image_file.file_id
-            # Asynchronously retrieve the content of the image file
-            response = await client.files.with_raw_response.retrieve_content(image_id)
-            # Create an image element with the retrieved content
-            elements = [
-                cl.Image(
-                    name=image_id,
-                    content=response.content,
-                    display="inline",
-                    size="large",
-                ),
-            ]
-
-            # If the message ID does not exist in the reference dictionary
-            if thread_message.id not in message_references:
-                # Create a new message with no text content but including the image element
-                message_references[thread_message.id] = cl.Message(
-                    author=thread_message.role,
-                    content="",
-                    elements=elements,
-                )
-                # Asynchronously send the newly created message
-                await message_references[thread_message.id].send()
-        else:
-            logger.error("unknown message type", type(content_message))
+from dotenv import load_dotenv
 
 
 async def handle_tool_call(step_details, step_references, step, tool_outputs):
@@ -156,18 +81,21 @@ async def step_logic(
         thread_id=thread_id, role="user", content=human_query, attachments=file_ids
     )
 
-    assistant_id = initialize_openai_client()
+    client = initialize_openai_client()
+    load_dotenv(dotenv_path='../', override=True)
 
-    e = EventHandler()
+    e = EventHandler(client=client)
+    assistant_id = os.getenv('ASSISTANT_ID')
 
-    async with client.beta.threads.runs.stream(
-            thread_id=thread_id,
-            assistant_id=assistant_id,
-            event_handler=e,
-    ) as stream:
-        await stream.until_done()
-
-    await process_thread_message(e.message_references, e.openAIMessage, client)
+    if assistant_id is not None:
+        async with client.beta.threads.runs.stream(
+                thread_id=thread_id,
+                assistant_id=assistant_id,
+                event_handler=e,
+        ) as stream:
+            await stream.until_done()
+    else:
+        raise ValueError("Couldn't pull assistant id from .env")
 
 
 async def process_tool_call(

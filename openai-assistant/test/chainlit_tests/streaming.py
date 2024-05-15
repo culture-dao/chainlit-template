@@ -7,12 +7,12 @@ from dotenv import load_dotenv
 
 from utils.event_handler import EventHandler
 from utils.openai_utils import initialize_openai_client, get_playground_url
-from cl_events.step import process_thread_message
+
 logging.basicConfig(level=logging.INFO)
 
 load_dotenv(dotenv_path='../', override=True)
 
-assistant_id='asst_2lanl1dvlTkCpOofxiPrHvzr'
+assistant_id = 'asst_2lanl1dvlTkCpOofxiPrHvzr'
 
 
 @cl.on_chat_start
@@ -38,7 +38,7 @@ async def on_chat_start():
 
     # Dummy message to start the step
     await cl.Message(content='').send()
-    e: EventHandler = EventHandler()
+    e: EventHandler = EventHandler(client=client)
 
     # Process the question and display the question in the UI
     async with client.beta.threads.runs.stream(
@@ -48,8 +48,6 @@ async def on_chat_start():
             event_handler=e
     ) as stream:
         await stream.until_done()
-    # After the message has been processed, handle the annotations
-    await process_thread_message(message_references=e.message_references, thread_message=e.openAIMessage, client=client)
 
 
 if __name__ == "__main__":
