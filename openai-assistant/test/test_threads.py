@@ -3,10 +3,11 @@ import unittest
 from utils.openai_utils import initialize_openai_client
 
 
+@unittest.skip('Sanity check; needs new thread ID')
 class TestThreads(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.thread_id = "thread_PPecfP37eSXH14froEsJJCSr"
-        self.client = initialize_openai_client()
+        self.client = initialize_openai_client('../.env')
 
     async def test_threads(self):
 

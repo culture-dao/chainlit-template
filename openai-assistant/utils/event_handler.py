@@ -1,6 +1,7 @@
 import logging
 from typing import Dict
 import chainlit as cl
+from chainlit import Step
 from openai.lib.streaming import AsyncAssistantEventHandler
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.threads import Run, Text, Message, MessageDelta, Message as ThreadMessage, \
@@ -68,7 +69,7 @@ class EventHandler(AsyncAssistantEventHandler):
 
     @cl.step
     async def on_tool_call_created(self, tool_call):
-        step = cl.context.current_step
+        step: Step = cl.context.current_step
         step.name = tool_call.type
         logging.info(f'\ton_tool_call_created {tool_call}')
         if tool_call.type == 'file_search':
