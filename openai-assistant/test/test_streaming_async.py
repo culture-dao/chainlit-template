@@ -80,7 +80,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
             status='in_progress'
         )
 
-        e.current_event = ThreadMessageDelta(
+        e._current_event = ThreadMessageDelta(
             data=MessageDeltaEvent(id="123", delta=MessageDelta(value="The"), object="thread.message.delta"),
             event="thread.message.delta")
 

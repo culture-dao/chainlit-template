@@ -1,5 +1,8 @@
 """
-This is for testing the annotations or whatever other display functionality is needed
+Dev/Integration test with sample OAI call to CL output.
+BEWARE: if you have multiple browser tabs open, then will all refresh,
+and you'll see multiple runs and messages being passed through.
+
 """
 import logging
 import chainlit as cl
