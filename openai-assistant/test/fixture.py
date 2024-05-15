@@ -112,12 +112,11 @@ message_with_multiple_annotations_no_quotes = Message.model_construct(
     role='assistant', run_id='run_BwCbncan9K7k9BvjLAmDynk8',
     thread_id='thread_bN7e6WVAa4WiJP1dXT0AeNkR')
 
-message_with_multiple_annotations = Message(
+message_with_multiple_annotations = Message.model_construct(
     id='message_with_multiple_annotations',
     assistant_id='test_fixtures',
     content=[
-        MessageContent(
-            text=Text(annotations=[FileCitationAnnotation(end_index=649,
+        TextContentBlock(text=Text(annotations=[FileCitationAnnotation(end_index=649,
                                                               file_citation=FileCitation(
                                                                   file_id='file-80O35GgEFpRE38EhT2HYe6qt',
                                                                   quote='Quote goes here'), start_index=612,
@@ -140,10 +139,10 @@ message_with_multiple_annotations = Message(
     role='assistant', run_id='run_BwCbncan9K7k9BvjLAmDynk8',
     thread_id='thread_bN7e6WVAa4WiJP1dXT0AeNkR')
 
-message_with_no_quote = Message(
+message_with_no_quote = Message.model_construct(
     id='msg_yBtMOMDop6UBg5d9QfcyszSH',
     assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
-    content=[MessageContent(text=Text(annotations=[FileCitationAnnotation(end_index=799,
+    content=[TextContentBlock(text=Text(annotations=[FileCitationAnnotation(end_index=799,
                                                                                   file_citation=FileCitation(
                                                                                       file_id='file-80O35GgEFpRE38EhT2HYe6qt',
                                                                                       quote=''), start_index=762,
