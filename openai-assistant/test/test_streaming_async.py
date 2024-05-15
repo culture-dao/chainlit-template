@@ -28,6 +28,9 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         self.client = initialize_openai_client('../.env')
         self.thread = None
 
+    async def asyncTearDown(self):
+        await self.client.close()
+
     @unittest.skip("cl.context not found. see openai-assistant/test/chainlit_tests/streaming.py")
     @patch('chainlit.Message', new_callable=MagicMock)
     async def testStreamingMocked(self, mock_message):
