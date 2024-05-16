@@ -1,15 +1,14 @@
 import json
 import logging
-import os
 from typing import Dict, Any, Optional
 
-from openai import AsyncOpenAI
 from openai.types.beta import Assistant
+
+from utils.openai_utils import initialize_openai_client
 
 ASSISTANT_NAME = "My Assistant"
 
-api_key = os.environ.get("OPENAI_API_KEY")
-client = AsyncOpenAI(api_key=api_key)
+client = initialize_openai_client('../.env')
 
 logger = logging.getLogger("chainlit")
 

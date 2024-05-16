@@ -8,4 +8,4 @@ async def on_start_chat_logic(client):
     cl.user_session.set("thread", thread)
 
     # Send the initial welcome message to the user
-    await cl.Message(author="TEST AGENT", content="Hi, I am the test agent. What's up?").send()
+    await cl.Message(author="Chatbot", content="Hi, I am ready. What is your query?").send()

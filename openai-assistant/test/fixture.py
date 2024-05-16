@@ -1,5 +1,5 @@
 from openai.types.beta.threads import (
-    Text, Message, TextContentBlock
+    Text, Message, TextContentBlock, MessageContent
 )
 from openai.types.beta.threads.file_citation_annotation import FileCitation, FileCitationAnnotation
 
@@ -9,7 +9,7 @@ message_with_citation = Message.model_construct(
     assistant_id='test_fixtures',
     content=[
         TextContentBlock(
-            text=Text(
+            text=Text.model_construct(
                 annotations=[FileCitationAnnotation(
                     end_index=241,
                     file_citation=FileCitation(
@@ -116,25 +116,24 @@ message_with_multiple_annotations = Message.model_construct(
     id='message_with_multiple_annotations',
     assistant_id='test_fixtures',
     content=[
-        TextContentBlock(
-            text=Text(annotations=[FileCitationAnnotation(end_index=649,
-                                                          file_citation=FileCitation(
-                                                              file_id='file-80O35GgEFpRE38EhT2HYe6qt',
-                                                              quote='Quote goes here'), start_index=612,
-                                                          text='【11:0†Supplemental Agreement - Other】',
-                                                          type='file_citation'),
+        TextContentBlock(text=Text(annotations=[FileCitationAnnotation(end_index=649,
+                                                              file_citation=FileCitation(
+                                                                  file_id='file-80O35GgEFpRE38EhT2HYe6qt',
+                                                                  quote='Quote goes here'), start_index=612,
+                                                              text='【11:0†Supplemental Agreement - Other】',
+                                                              type='file_citation'),
                                    FileCitationAnnotation(end_index=980,
-                                                          file_citation=FileCitation(
-                                                              file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
-                                                              quote='Quote goes here'), start_index=944,
-                                                          text='【11:2†VA-AFGE-2023-Master-Agreement】',
-                                                          type='file_citation'),
+                                                              file_citation=FileCitation(
+                                                                  file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
+                                                                  quote='Quote goes here'), start_index=944,
+                                                              text='【11:2†VA-AFGE-2023-Master-Agreement】',
+                                                              type='file_citation'),
                                    FileCitationAnnotation(end_index=1301,
-                                                          file_citation=FileCitation(
-                                                              file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
-                                                              quote='Quote goes here'), start_index=1265,
-                                                          text='【11:4†VA-AFGE-2023-Master-Agreement】',
-                                                          type='file_citation')],
+                                                              file_citation=FileCitation(
+                                                                  file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
+                                                                  quote='Quote goes here'), start_index=1265,
+                                                              text='【11:4†VA-AFGE-2023-Master-Agreement】',
+                                                              type='file_citation')],
                       value="The Master Agreement addresses emergency leave in the context of annual leave for emergency reasons. It stipulates that when annual leave is requested, there will generally be a requirement for two weeks' notice to employees needed to cover a shift, except in cases of emergency annual leave. Emergency annual leave requests submitted after posted individual Service deadlines for requesting planned annual leave will be considered if one (1) month prior notice has been given. Approval of annual leave for emergency reasons will be considered on an individual basis and generally granted when conditions warrant【11:0†Supplemental Agreement - Other】. \n\nFurthermore, under the VA-AFGE 2023 Master Agreement, unplanned leave, which may cover emergency situations, requires that employees must contact their supervisor or designee to request leave. The employee will be informed whether leave is approved or disapproved at the time it is requested【11:2†VA-AFGE-2023-Master-Agreement】. \n\nFor those impacted by hazardous weather or emergency conditions, the Department and local union jointly plan procedures and communicate these to employees annually. The appropriate Department official informs the local union when hazardous weather/emergency conditions are declared【11:4†VA-AFGE-2023-Master-Agreement】. \n\nWhile specifics about emergency leave are discussed in these contexts, the agreement allows for negotiation and individual consideration, especially in emergency circumstances."),
             type='text')], created_at=1711384977, file_ids=[], metadata={}, object='thread.message',
     role='assistant', run_id='run_BwCbncan9K7k9BvjLAmDynk8',
@@ -144,13 +143,13 @@ message_with_no_quote = Message.model_construct(
     id='msg_yBtMOMDop6UBg5d9QfcyszSH',
     assistant_id='asst_UdBAhFZsmVSJCJ8THgCpA1tK',
     content=[TextContentBlock(text=Text(annotations=[FileCitationAnnotation(end_index=799,
-                                                                            file_citation=FileCitation(
-                                                                                file_id='file-80O35GgEFpRE38EhT2HYe6qt',
-                                                                                quote=''), start_index=762,
-                                                                            text='【11:0†Supplemental Agreement - Other】',
-                                                                            type='file_citation')],
-                                        value='The policy on emergency leave, specifically in the context of annual leave requested for emergency reasons, is outlined in the Supplemental Agreement - Other. It states that approval of annual leave for emergency reasons will be considered on an individual basis and generally granted when conditions warrant. This is applicable when annual leave is requested by personnel on established tours of duty where limited personnel are available, and the shifts must be covered. Typically, there is a two-week notice required for employees to cover a shift except for emergency annual leave. However, leave requests submitted after posted individual Service deadlines for requesting planned annual leave will also be considered if one-month prior notice has been given【11:0†Supplemental Agreement - Other】.'),
-                              type='text')], created_at=1713369819, file_ids=[], metadata={}, object='thread.message',
+                                                                                  file_citation=FileCitation(
+                                                                                      file_id='file-80O35GgEFpRE38EhT2HYe6qt',
+                                                                                      quote=''), start_index=762,
+                                                                                  text='【11:0†Supplemental Agreement - Other】',
+                                                                                  type='file_citation')],
+                                          value='The policy on emergency leave, specifically in the context of annual leave requested for emergency reasons, is outlined in the Supplemental Agreement - Other. It states that approval of annual leave for emergency reasons will be considered on an individual basis and generally granted when conditions warrant. This is applicable when annual leave is requested by personnel on established tours of duty where limited personnel are available, and the shifts must be covered. Typically, there is a two-week notice required for employees to cover a shift except for emergency annual leave. However, leave requests submitted after posted individual Service deadlines for requesting planned annual leave will also be considered if one-month prior notice has been given【11:0†Supplemental Agreement - Other】.'),
+                                type='text')], created_at=1713369819, file_ids=[], metadata={}, object='thread.message',
     role='assistant', run_id='run_NLuWvTH6jB8bRDDUdnA6GYFj',
     thread_id='thread_3VUqa6OrkWXM98qIlpjWnmv7')
 

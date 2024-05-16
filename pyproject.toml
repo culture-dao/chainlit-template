@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["BCM <dahifi@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -15,3 +16,5 @@ mailchimp-marketing = "^3.0.80"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
