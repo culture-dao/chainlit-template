@@ -1,7 +1,7 @@
 import asyncio
 from unittest import TestCase
 
-from app.cl_events.oauth_callback import post_to_discord
+from cl_events.oauth_callback import post_to_discord
 from fixture import raw_user_data
 
 

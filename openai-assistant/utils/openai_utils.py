@@ -31,7 +31,7 @@ class AsyncPaginatorHelper(Generic[T]):
         return items
 
 
-def initialize_openai_client() -> AsyncOpenAI:
+def initialize_openai_client(env_path: str = '.env') -> AsyncOpenAI:
     """
     Initializes and returns an OpenAI client using the API key from environment variables.
 
@@ -42,7 +42,7 @@ def initialize_openai_client() -> AsyncOpenAI:
         ValueError: If the OpenAI API key is not found in the environment variables.
         Exception: If there is an issue initializing the OpenAI client.
     """
-    load_dotenv('../.env', override=True)
+    load_dotenv(env_path, override=True)
     openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
         logger.error("OpenAI API key not found. Please check your environment variables.")

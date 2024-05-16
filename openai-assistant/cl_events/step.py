@@ -1,19 +1,15 @@
 import json
+import os
 from datetime import datetime
 from typing import List, Dict, Any
-
 import chainlit as cl
-from chainlit.logger import logger
-from openai import AsyncOpenAI
-from openai.types.beta.threads import (
-    Message as ThreadMessage,
-    TextContentBlock as MessageContentText,
-    ImageFileContentBlock as MessageContentImageFile
-)
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 from openai.types.beta.vector_stores import VectorStoreFile
 
+from utils.event_handler import EventHandler
+from utils.openai_utils import initialize_openai_client
+from dotenv import load_dotenv
 from utils.annotations import OpenAIAdapter
 from utils.assistant_handler import assistant_handler
 
@@ -70,18 +66,64 @@ async def process_thread_message(
                 ),
             ]
 
-            # If the message ID does not exist in the reference dictionary
-            if id not in message_references:
-                # Create a new message with no text content but including the image element
-                message_references[id] = cl.Message(
-                    author=thread_message.role,
-                    content="",
-                    elements=elements,
+
+async def handle_tool_call(step_details, step_references, step, tool_outputs):
+    tool_map = {}
+    if step_details.type == "tool_calls":
+        for tool_call in step_details.tool_calls:
+            if isinstance(tool_call, dict):
+                tool_call = DictToObject(tool_call)
+
+            if tool_call.type == "code_interpreter":
+                await process_tool_call(
+                    step_references=step_references,
+                    step=step,
+                    tool_call=tool_call,
+                    name=tool_call.type,
+                    input=tool_call.code_interpreter.input
+                          or "# Generating code",
+                    output=tool_call.code_interpreter.outputs,
+                    show_input="python",
                 )
-                # Asynchronously send the newly created message
-                await message_references[id].send()
-        else:
-            logger.error("unknown message type", type(content_message))
+
+                tool_outputs.append(
+                    {
+                        "output": tool_call.code_interpreter.outputs or "",
+                        "tool_call_id": tool_call.id,
+                    }
+                )
+
+            elif tool_call.type == "retrieval":
+                await process_tool_call(
+                    step_references=step_references,
+                    step=step,
+                    tool_call=tool_call,
+                    name=tool_call.type,
+                    input="Retrieving information",
+                    output="Retrieved information",
+                )
+
+            elif tool_call.type == "function":
+                function_name = tool_call.function.name
+                function_args = json.loads(tool_call.function.arguments)
+
+                function_output = tool_map[function_name](
+                    **json.loads(tool_call.function.arguments)
+                )
+
+                await process_tool_call(
+                    step_references=step_references,
+                    step=step,
+                    tool_call=tool_call,
+                    name=function_name,
+                    input=function_args,
+                    output=function_output,
+                    show_input="json",
+                )
+
+                tool_outputs.append(
+                    {"output": function_output, "tool_call_id": tool_call.id}
+                )
 
 
 async def step_logic(
@@ -90,126 +132,28 @@ async def step_logic(
         file_ids: List[str] = [],
         client=None
 ):
-    if file_ids:
-        logger.info(f"File uploaded to file search: {file_ids}")
-        human_query += f"/nThe following files were uploaded to file search: {file_ids}"
-
     # Add the message to the thread
     await client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=human_query
+        thread_id=thread_id, role="user", content=human_query, attachments=file_ids
     )
+
+    client = initialize_openai_client()
+    load_dotenv(dotenv_path='../', override=True)
+
+    e = EventHandler(client=client)
 
     assistant = assistant_handler.find_by_name("Liminal Flow Agent")
     assistant_id = assistant.id
 
-    # Create the run
-    run = await client.beta.threads.runs.create(
-        thread_id=thread_id, assistant_id=assistant_id
-    )
-
-    message_references = {}  # type: Dict[str, cl.Message]
-    step_references = {}  # type: Dict[str, cl.Step]
-    tool_outputs = []
-    # Periodically check for updates
-    while True:
-        thread_message = None
-
-        run = await client.beta.threads.runs.retrieve(
-            thread_id=thread_id, run_id=run.id
-        )
-
-        # Fetch the run steps
-        run_steps = await client.beta.threads.runs.steps.list(
-            thread_id=thread_id, run_id=run.id, order="asc"
-        )
-
-        for step in run_steps.data:
-            # Fetch step details
-            run_step = await client.beta.threads.runs.steps.retrieve(
-                thread_id=thread_id, run_id=run.id, step_id=step.id
-            )
-            step_details = run_step.step_details
-            # Update step content in the Chainlit UI
-            if step_details.type == "message_creation":
-                thread_message = await client.beta.threads.messages.retrieve(
-                    message_id=step_details.message_creation.message_id,
-                    thread_id=thread_id,
-                )
-                await process_thread_message(message_references, thread_message, client)
-
-            if step_details.type == "tool_calls":
-                for tool_call in step_details.tool_calls:
-                    if isinstance(tool_call, dict):
-                        tool_call = DictToObject(tool_call)
-
-                    if tool_call.type == "code_interpreter":
-                        await process_tool_call(
-                            step_references=step_references,
-                            step=step,
-                            tool_call=tool_call,
-                            name=tool_call.type,
-                            input=tool_call.code_interpreter.input
-                                  or "# Generating code",
-                            output=tool_call.code_interpreter.outputs,
-                            show_input="python",
-                        )
-
-                        tool_outputs.append(
-                            {
-                                "output": tool_call.code_interpreter.outputs or "",
-                                "tool_call_id": tool_call.id,
-                            }
-                        )
-
-                    elif tool_call.type == "retrieval":
-                        await process_tool_call(
-                            step_references=step_references,
-                            step=step,
-                            tool_call=tool_call,
-                            name=tool_call.type,
-                            input="Retrieving information",
-                            output="Retrieved information",
-                        )
-
-                    elif tool_call.type == "function":
-                        function_name = tool_call.function.name
-                        function_args = json.loads(tool_call.function.arguments)
-
-                        function_output = tool_map[function_name](
-                            **json.loads(tool_call.function.arguments)
-                        )
-
-                        await process_tool_call(
-                            step_references=step_references,
-                            step=step,
-                            tool_call=tool_call,
-                            name=function_name,
-                            input=function_args,
-                            output=function_output,
-                            show_input="json",
-                        )
-
-                        tool_outputs.append(
-                            {"output": function_output, "tool_call_id": tool_call.id}
-                        )
-            if (
-                    run.status == "requires_action"
-                    and run.required_action.type == "submit_tool_outputs"
-            ):
-                await client.beta.threads.runs.submit_tool_outputs(
-                    thread_id=thread_id,
-                    run_id=run.id,
-                    tool_outputs=tool_outputs,
-                )
-
-        await cl.sleep(2)  # Refresh every 2 seconds
-
-        if run.status == "completed" and thread_message.content is None:
-            thread_message.content = "An error occurred, please try again later or contact support"
-            await process_thread_message(message_references, thread_message)
-
-        if run.status in ["cancelled", "failed", "completed", "expired"]:
-            break
+    if assistant_id is not None:
+        async with client.beta.threads.runs.stream(
+                thread_id=thread_id,
+                assistant_id=assistant_id,
+                event_handler=e,
+        ) as stream:
+            await stream.until_done()
+    else:
+        raise ValueError("Couldn't pull assistant id from .env")
 
 
 async def process_tool_call(
@@ -221,7 +165,7 @@ async def process_tool_call(
         output: Any,
         show_input: str = None,
 ):
-    cl_step = None
+    cl_step: cl.Step | None = None
     update = False
     if tool_call.id not in step_references:
         cl_step = cl.Step(
