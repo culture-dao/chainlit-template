@@ -168,5 +168,7 @@ cython_debug/
 /openapi.yml
 /langflow/**
 /langserve/**
-openai-assistant/test/.chainlit
-openai-assistant/test/chainlit.md
+
+/openai-assistant/test/**/.chainlit
+/openai-assistant/test/**/chainlit.md
+
