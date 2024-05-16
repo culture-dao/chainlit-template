@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional, Dict
 
 import chainlit as cl
 from literalai import Thread
@@ -20,6 +20,7 @@ client = initialize_openai_client()
 logger = logging.getLogger("chainlit")
 
 ASSISTANT_NAME = "DEMO AGENT"
+
 
 @cl.oauth_callback
 async def oauth_callback(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: cl.User) -> \
