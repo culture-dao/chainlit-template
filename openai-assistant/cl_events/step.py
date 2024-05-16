@@ -2,69 +2,18 @@ import json
 import os
 from datetime import datetime
 from typing import List, Dict, Any
+
 import chainlit as cl
+from dotenv import load_dotenv
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 from openai.types.beta.vector_stores import VectorStoreFile
 
+from utils.assistant_handler import assistant_handler
 from utils.event_handler import EventHandler
 from utils.openai_utils import initialize_openai_client
-from dotenv import load_dotenv
-from utils.annotations import OpenAIAdapter
-from utils.assistant_handler import assistant_handler
 
-
-async def process_thread_message(
-        message_references: Dict[str, cl.Message],
-        thread_message: ThreadMessage,
-        client
-):
-    # Loop through each message content with the content and index
-    for idx, content_message in enumerate(thread_message.content):
-        # Generate a unique ID for each message using the thread ID and index
-        id = thread_message.id + str(idx)
-
-        adapter = OpenAIAdapter(thread_message)
-        await adapter.main()
-        content = adapter.get_content()
-        elements = adapter.get_elements()
-
-        # Check if the message content is of type text
-        if isinstance(content_message, MessageContentText):
-            # If the message ID already exists in the reference dictionary
-            if id in message_references:
-                # Retrieve the existing message from references
-                msg = message_references[id]
-
-                # Update the message content with the new text
-                # msg.content = content_message.text.value
-                msg.content = content
-                msg.elements = elements
-
-                await msg.update()
-            else:
-
-                # If the message ID does not exist, create a new message and add it to the references
-                message_references[id] = cl.Message(
-                    author=thread_message.role, content=content, elements=elements
-                )
-                # Asynchronously send the newly created message
-                await message_references[id].send()
-        # Check if the message content is of type image file
-        elif isinstance(content_message, MessageContentImageFile):
-            # Retrieve the image file ID
-            image_id = content_message.image_file.file_id
-            # Asynchronously retrieve the content of the image file
-            response = await client.files.with_raw_response.retrieve_content(image_id)
-            # Create an image element with the retrieved content
-            elements = [
-                cl.Image(
-                    name=image_id,
-                    content=response.content,
-                    display="inline",
-                    size="large",
-                ),
-            ]
+ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
 
 async def handle_tool_call(step_details, step_references, step, tool_outputs):
@@ -129,7 +78,7 @@ async def handle_tool_call(step_details, step_references, step, tool_outputs):
 async def step_logic(
         thread_id: str,
         human_query: str,
-        file_ids: List[str] = [],
+        file_ids: List[VectorStoreFile],
         client=None
 ):
     # Add the message to the thread
@@ -142,7 +91,7 @@ async def step_logic(
 
     e = EventHandler(client=client)
 
-    assistant = assistant_handler.find_by_name("Liminal Flow Agent")
+    assistant = assistant_handler.find_by_name(ASSISTANT_NAME)
     assistant_id = assistant.id
 
     if assistant_id is not None:

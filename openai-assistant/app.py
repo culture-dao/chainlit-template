@@ -1,5 +1,6 @@
 import logging
-from typing import Dict, List, Optional
+import os
+from typing import List
 
 import chainlit as cl
 from chainlit.types import ThreadDict
@@ -7,16 +8,10 @@ from literalai import Thread
 from openai.types.beta.vector_stores import VectorStoreFile
 
 from chainlit_utils import process_files
-from chainlit.types import ThreadDict
-
-from cl_events.oauth_callback import oauth_callback_logic
-from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
 from utils.openai_utils import initialize_openai_client
-
-
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,12 +19,14 @@ client = initialize_openai_client()
 
 logger = logging.getLogger("chainlit")
 
-ASSISTANT_NAME = "DEMO AGENT"
+ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
-@cl.oauth_callback
-async def oauth_callback(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: cl.User) -> \
-        Optional[cl.User]:
-    return await oauth_callback_logic(provider_id, token, raw_user_data, default_app_user)
+
+# Uncomment for live deployments!
+# @cl.oauth_callback
+# async def oauth_callback(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: cl.User) -> \
+#         Optional[cl.User]:
+#     return await oauth_callback_logic(provider_id, token, raw_user_data, default_app_user)
 
 
 @cl.on_chat_start
@@ -37,6 +34,7 @@ async def on_chat_start_callback():
     return await on_start_chat_logic(client)
 
 
+# Simple, local auth for dev, don't use in PROD!
 @cl.password_auth_callback
 def auth_callback(username: str, password: str):
     # Fetch the user matching username from your database
