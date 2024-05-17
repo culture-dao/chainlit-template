@@ -1,5 +1,7 @@
 # Chainlit-OAI-Assistants Template (COAT): Your Starter Kit for Chainlit and OpenAI's Assistants API
 
+![COAT Logo](logo.png)
+
 Welcome to Chainlit-OAI-Assistants Template, a robust starting point for deploying applications using Chainlit and OpenAI's Assistants API. This repository is a public version of our current production monorepo, deployed at https://AIFGE.xyz, and we're releasing it publicly to give back to the Chainlit community. 
 
 ## What's Inside?
