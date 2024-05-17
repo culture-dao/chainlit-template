@@ -12,11 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
-## [0.4.188] - 2024-05-15
+## [0.4.0 build 191] - 2024-05-15
 
 ### Added
 - Support for OAI Assistant Streaming
 - Changelog
+- Super awesome logo
 
 ### Changed
 - Updated Readme
