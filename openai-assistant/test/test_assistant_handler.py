@@ -39,7 +39,7 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
     @unittest.skip("Side effects")
     async def test_assistant_update(self):
-        await self.handler._attach_file_search(TEST_ASSISTANT_ID)
+        await self.handler.attach_file_search(TEST_ASSISTANT_ID)
 
 
 @unittest.skip("Needs valid thread and big refactor")
