@@ -66,7 +66,7 @@ async def run(thread_id: str, human_query: str, file_ids: List[VectorStoreFile])
 @cl.on_message
 async def on_message(message_from_ui: cl.Message):
     thread: Thread = cl.user_session.get("thread")
-    files_ids :List[VectorStoreFile] = await process_files(message_from_ui.elements)
+    files_ids: List[VectorStoreFile] = await process_files(message_from_ui.elements)
     await run(
         thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
     )

@@ -1,37 +1,45 @@
+import os
 import unittest
 from typing import Iterable, List
 
 import chainlit as cl
+from dotenv import load_dotenv
 from openai.types.beta import Assistant
 
 from chainlit_utils import DictToObject
-from utils import assistant_handler
-from utils.openai_utils import client
+from utils.assistant_handler import AssistantHandler
+from utils.openai_utils import initialize_openai_client
 
-ASSISTANT_ID = os.getenv('ASSISTANT_ID')
+load_dotenv('../.env', override=True)
+
+TEST_ASSISTANT_ID = os.getenv('TEST_ASSISTANT_ID')
+ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
+
+client = initialize_openai_client('../.env')
 
 
 class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
-    # def setUp(self) -> None:
+    def setUp(self) -> None:
+        self.handler = AssistantHandler('', client)
 
     async def test_assistant_retrieve_valid(self):
-        result = await assistant_handler.assistant_retrieve(ASSISTANT_ID)
+        result = await self.handler._assistant_retrieve(TEST_ASSISTANT_ID)
         assert result
 
     async def test_assistant_retrieve_invalid(self):
         with self.assertRaises(Exception):
-            await assistant_handler.assistant_retrieve("nonsense")
+            await self.handler._assistant_retrieve("nonsense")
 
     async def test_assistant_list(self):
-        assistants: List[Assistant] = await assistant_handler.assistants_list()
+        assistants: List[Assistant] = await self.handler._assistants_list()
         self.assertTrue(isinstance(assistants, Iterable), "obj should be an iterable")
         self.assertTrue(all(isinstance(item, Assistant) for item in assistants),
                         "all items in files should be of type Assistant")
 
     @unittest.skip("Side effects")
     async def test_assistant_update(self):
-        await assistant_handler.attach_file_search(ASSISTANT_ID)
+        await self.handler._attach_file_search(TEST_ASSISTANT_ID)
 
 
 @unittest.skip("Needs valid thread and big refactor")
