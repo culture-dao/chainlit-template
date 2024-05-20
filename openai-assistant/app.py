@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Dict, Optional
 
 import chainlit as cl
 from literalai import Thread
