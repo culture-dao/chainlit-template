@@ -8,7 +8,7 @@ from openai.types.beta import Assistant, AssistantToolParam, FileSearchToolParam
 from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
 from utils.openai_handler import OpenAIHandler
-from utils.openai_utils import AsyncPaginatorHelper
+from utils.openai_utils import AsyncPaginatorHelper, initialize_openai_client
 
 logger = logging.getLogger("chainlit")
 
@@ -19,6 +19,8 @@ class AssistantHandler(OpenAIHandler):
     def __init__(self, config_path: str, client: AsyncOpenAI = None):
         super().__init__(config_path, Assistant)
         self.client = client
+        if self.client is None:
+            self.client = initialize_openai_client()
 
     async def list(self):
         return await self._assistants_list()
