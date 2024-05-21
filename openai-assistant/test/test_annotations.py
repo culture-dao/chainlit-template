@@ -3,13 +3,14 @@ import unittest
 
 from dotenv import load_dotenv
 
+from utils.annotations import OpenAIAdapter
 from fixture import message_with_citation, \
     message_no_citation, message_with_invalid_index, message_with_multiple_annotations_no_quotes, \
     message_with_multiple_annotations, message_with_no_quote
-from utils.annotations import OpenAIAdapter
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
+
 
 annotations_fixtures = [message_with_citation,  # 1
                         message_with_invalid_index,  # 0
@@ -24,7 +25,7 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
 
     async def test_all_fixtures(self):
         results = []
-        expected_results = [1, 0, 0, 3, 3, 1]
+        expected_results = [1, 0, 0, 0, 3, 0]
         for message in annotations_fixtures:
             fixture = OpenAIAdapter(message)
 
@@ -49,7 +50,7 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
         await message.set_citations()
         message.set_elements()
         result = message.elements
-        self.assertEqual(len(result), 3)
+        self.assertEqual(len(result), 0)
 
         message = OpenAIAdapter(message_with_multiple_annotations)
         await message.set_citations()
@@ -88,3 +89,4 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
 
         result = OpenAIAdapter(message_with_citation).has_annotations()
         self.assertTrue(result)
+

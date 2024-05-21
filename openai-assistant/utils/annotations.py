@@ -13,10 +13,11 @@ from openai.types import FileObject
 from openai.types.beta.threads import (
     Message as ThreadMessage
 )
+
 from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, \
     FileCitationAnnotation as TextAnnotationFileCitation
 
-from utils.openai_utils import initialize_openai_client
+from .openai_utils import initialize_openai_client
 
 
 class OpenAIAdapter:
@@ -25,7 +26,7 @@ class OpenAIAdapter:
     """
 
     def __init__(self, message: ThreadMessage) -> None:
-        self.client = initialize_openai_client()
+        self.client = initialize_openai_client("../../.env")
         self._id: str = message.id
         self.message: ThreadMessage = message
         # We're putting these in reverse order so we can work backward in get_content
