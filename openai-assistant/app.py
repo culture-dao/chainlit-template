@@ -5,6 +5,7 @@ from typing import List
 import chainlit as cl
 from chainlit.types import ThreadDict
 from literalai import Thread
+from openai import BadRequestError
 from openai.types.beta.vector_stores import VectorStoreFile
 
 from chainlit_utils import process_files
@@ -66,7 +67,12 @@ async def run(thread_id: str, human_query: str, file_ids: List[VectorStoreFile])
 @cl.on_message
 async def on_message(message_from_ui: cl.Message):
     thread: Thread = cl.user_session.get("thread")
-    files_ids: List[VectorStoreFile] = await process_files(message_from_ui.elements)
-    await run(
-        thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
-    )
+    try:
+        files_ids: List[VectorStoreFile] = await process_files(message_from_ui.elements)
+        await run(
+            thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
+        )
+    except BadRequestError as e:
+        logger.error(e)
+        # This exposes OAI to user, might want to throw a custom error here
+        await cl.Message(author='System', content=e.body['message']).send()
