@@ -1,9 +1,14 @@
 import json
+
 import chainlit as cl
 from chainlit import ThreadDict, logger
 
+from utils.assistant_handler import assistant_handler
+
 
 async def on_chat_resume_logic(thread: ThreadDict, client):
+    assistant = assistant_handler.find_by_name("Liminal Flow Agent")
+
     steps = thread.get('steps')
 
     # Find the right step that has the thread id we need.
@@ -22,4 +27,4 @@ async def on_chat_resume_logic(thread: ThreadDict, client):
     else:
         response_content = "Welcome back! I'm ready to assist you. How can I help you today?"
     cl.user_session.set("thread", thread)
-    await cl.Message(author="AFGE V.S.", content=response_content).send()
+    await cl.Message(content=response_content).send()

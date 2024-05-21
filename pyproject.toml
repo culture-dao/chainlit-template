@@ -11,6 +11,7 @@ python = "^3.11"
 chainlit = "^1.0.505"
 openai = "^1.23.3"
 mailchimp-marketing = "^3.0.80"
+pyyaml = "^6.0.1"
 
 
 [build-system]

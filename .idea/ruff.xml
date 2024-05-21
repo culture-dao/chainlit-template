@@ -2,5 +2,6 @@
 <project version="4">
   <component name="RuffConfigService">
     <option name="globalRuffExecutablePath" value="/opt/homebrew/bin/ruff" />
+    <option name="projectRuffExecutablePath" value="$USER_HOME$/Library/Caches/pypoetry/virtualenvs/chainlit-test-z4IvK7fT-py3.10/bin/ruff" />
   </component>
 </project>

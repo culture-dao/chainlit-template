@@ -5,11 +5,13 @@ We mock out the CL calls here, that final integration test is test/chainlit_test
 """
 
 import logging
+import os
 import unittest
 from unittest.mock import MagicMock, patch, AsyncMock
 
 from chainlit.context import ChainlitContext, context_var
 from chainlit.session import HTTPSession
+from dotenv import load_dotenv
 from openai.types.beta.assistant_stream_event import ThreadMessageDelta
 from openai.types.beta.threads import MessageDelta, Message
 from openai.types.beta.threads import Text, TextDelta, MessageDeltaEvent, TextDeltaBlock, TextContentBlock
@@ -21,11 +23,14 @@ from utils.openai_utils import get_playground_url, initialize_openai_client
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+load_dotenv('../.env')
+TEST_ASSISTANT_ID = os.getenv('TEST_ASSISTANT_ID')
+
 
 class TestStreaming(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        self.assistant_id = 'asst_2lanl1dvlTkCpOofxiPrHvzr'
-        self.client = initialize_openai_client('../.env')
+        self.assistant_id = TEST_ASSISTANT_ID
+        self.client = initialize_openai_client()
         self.thread = None
 
     async def asyncTearDown(self):
