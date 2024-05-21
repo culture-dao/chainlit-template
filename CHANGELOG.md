@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.4.3 build 259] - 2024-05-21
+
+### Added
+- File uploads from Chainlit to OAI Thread-specific vectorstore
+- OAI Object Handler for Assistant state dumps and dynamic maps
+
+
 ## [0.4.2 build 193] - 2024-05-21
 
 ### Fixed
