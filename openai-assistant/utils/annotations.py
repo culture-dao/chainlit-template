@@ -14,7 +14,8 @@ from openai.types.beta.threads import (
     Message as ThreadMessage
 )
 
-from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, FileCitationAnnotation as TextAnnotationFileCitation
+from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, \
+    FileCitationAnnotation as TextAnnotationFileCitation
 
 from .openai_utils import initialize_openai_client
 
@@ -25,7 +26,7 @@ class OpenAIAdapter:
     """
 
     def __init__(self, message: ThreadMessage) -> None:
-        self.client = initialize_openai_client()
+        self.client = initialize_openai_client("../../.env")
         self._id: str = message.id
         self.message: ThreadMessage = message
         # We're putting these in reverse order so we can work backward in get_content
@@ -54,8 +55,6 @@ class OpenAIAdapter:
 
     async def set_citations(self) -> None:
         for annotation in self.annotations:
-            if not annotation.file_citation.quote:
-                continue
             citation = annotation.file_citation
             try:
                 retrieved_file: FileObject = await self.client.files.retrieve(
@@ -105,7 +104,7 @@ class OpenAIAdapter:
         self.elements = [
             (
                 f"[{i}] {citation.file_id}",
-                f"{citation.quote if citation.quote else 'No quote available'}",
+                f"{citation.quote if citation.quote else ' '}",  # Can't be '' needs have the space
             )
             for i, citation in enumerate(self.citations, start=1)
         ]

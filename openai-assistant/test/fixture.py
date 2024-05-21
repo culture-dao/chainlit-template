@@ -13,7 +13,9 @@ message_with_citation = Message.model_construct(
                 annotations=[FileCitationAnnotation(
                     end_index=241,
                     file_citation=FileCitation(
-                        file_id='file-NHlneG03h2SdhS8Qzab5dbMw',
+                        # Since we moved assistants our file ids are invalid, so I replaced this with one
+                        # we have in the current agent just for testing
+                        file_id='file-A8iZLTqbU5cxrNOWfe4gd404',
                         quote='Section 2 - Annual Leave\nA. Annual leave is provided to allow employees extended leave for rest\nand recreation and to provide periods of time off for personal and\nunscheduled purposes. All employees may request at least two consecutive\nweeks of annual leave per year and take such leave subject to the\nDepartment’s approval. \n\n\nDepartment of Veterans Affairs Labor Management Relations | DVA /AFGE Master Agreement 187\n\nEMPLOYEE RIGHTS AND PRIVILEGES | ARTICLE 35 - TIME AND LEAVE\n\n\nB. The use of accrued annual leave is an absolute right of the employee \nsubject to the right of the Department to approve when leave may'),
                     start_index=230,
                     text='【11†source】',
