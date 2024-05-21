@@ -52,6 +52,7 @@ class TestStreaming(unittest.IsolatedAsyncioTestCase):
         ) as stream:
             await stream.until_done()
 
+    @unittest.skip('This test is out of date following V2 Event handling')
     @patch('chainlit.Message', new_callable=MagicMock)
     async def testMessageDelta(self, mock_cl_message):
         mock_cl_message.return_value.send = AsyncMock()

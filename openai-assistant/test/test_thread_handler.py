@@ -1,8 +1,8 @@
 import logging
 
 import chainlit as cl
-from app.utils.annotations import OpenAIAdapter
-from app.utils.openai_utils import get_thread_messages, initialize_openai_client
+from utils.annotations import OpenAIAdapter
+from utils.openai_utils import get_thread_messages, initialize_openai_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("chainlit")
