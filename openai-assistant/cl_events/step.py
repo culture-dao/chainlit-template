@@ -5,9 +5,10 @@ from typing import List, Dict, Any
 
 import chainlit as cl
 from dotenv import load_dotenv
+from openai.types.beta import FileSearchToolParam
+from openai.types.beta.threads.message_create_params import Attachment
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
-from openai.types.beta.vector_stores import VectorStoreFile
 
 from utils.assistant_handler import assistant_handler
 from utils.event_handler import EventHandler
@@ -78,12 +79,18 @@ async def handle_tool_call(step_details, step_references, step, tool_outputs):
 async def step_logic(
         thread_id: str,
         human_query: str,
-        file_ids: List[VectorStoreFile],
+        file_ids: List[str],
         client=None
 ):
+    attachments: List[Attachment] | None = None
+    if file_ids:
+        attachments = []
+        for file in file_ids:
+            attachments.append(Attachment(file_id=file, tools=[FileSearchToolParam(type='file_search')]))
+
     # Add the message to the thread
     await client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=human_query, attachments=file_ids
+        thread_id=thread_id, role="user", content=human_query, attachments=attachments
     )
 
     client = initialize_openai_client()
