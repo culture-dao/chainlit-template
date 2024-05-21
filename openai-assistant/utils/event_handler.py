@@ -50,8 +50,6 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_message_created(self, message: Message) -> None:
         logging.info(f'on_message_created: {message.id}')
         cl_message = cl.Message(content='')
-        # Send the empty message to the UI
-        await cl_message.send()
         # Update the references so the OpenAI message id maps to the Chainlit message
         self.message_references[message.id] = cl_message
 
@@ -63,10 +61,13 @@ class EventHandler(AsyncAssistantEventHandler):
             raise ValueError("Content length must be 1 or less.")
 
         cl_message = self.message_references[snapshot.id]
-        cl_message.content = snapshot.content[0].text.value
 
         # Update the message in the UI/persistence
-        await cl_message.update()
+        logging.info(f"Streaming delta value: {delta.content[0].text.value}")
+        await cl_message.stream_token(delta.content[0].text.value)
+
+    async def on_message_done(self, message: Message):
+        await self.message_references[message.id].send()
 
     @cl.step
     async def on_tool_call_created(self, tool_call):

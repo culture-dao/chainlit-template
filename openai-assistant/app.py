@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import List
+from typing import List, Dict, Optional
+
 
 import chainlit as cl
 from chainlit.types import ThreadDict
