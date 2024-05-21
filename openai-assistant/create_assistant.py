@@ -8,7 +8,7 @@ from utils.openai_utils import initialize_openai_client
 
 ASSISTANT_NAME = "My Assistant"
 
-client = initialize_openai_client('../.env')
+client = initialize_openai_client()
 
 logger = logging.getLogger("chainlit")
 
