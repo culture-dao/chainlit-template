@@ -7,7 +7,6 @@ from typing import TypeVar, Generic, List, Dict, Any, Type
 import openai
 import yaml
 from chainlit.logger import logger
-from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from openai.pagination import AsyncPage
 from openai.types.beta import Thread
@@ -31,7 +30,7 @@ class AsyncPaginatorHelper(Generic[T]):
         return items
 
 
-def initialize_openai_client(env_path: str = '.env') -> AsyncOpenAI:
+def initialize_openai_client() -> AsyncOpenAI:
     """
     Initializes and returns an OpenAI client using the API key from environment variables.
 
@@ -42,7 +41,6 @@ def initialize_openai_client(env_path: str = '.env') -> AsyncOpenAI:
         ValueError: If the OpenAI API key is not found in the environment variables.
         Exception: If there is an issue initializing the OpenAI client.
     """
-    load_dotenv(env_path, override=True)
     openai.api_key = os.getenv('OPENAI_API_KEY')
     if not openai.api_key:
         logger.error("OpenAI API key not found. Please check your environment variables.")

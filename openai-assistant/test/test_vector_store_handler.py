@@ -8,7 +8,7 @@ from openai.types.beta import VectorStore
 from utils.openai_utils import initialize_openai_client
 from utils.vector_stores_handler import VectorStoresHandler
 
-client = initialize_openai_client('../.env')
+client = initialize_openai_client()
 
 load_dotenv('../.env', override=True)
 TEST_VECTORSTORE_ID = os.getenv('TEST_VECTORSTORE_ID')

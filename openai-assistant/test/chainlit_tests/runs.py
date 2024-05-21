@@ -3,6 +3,7 @@ This is for testing the annotations or whatever other display functionality is n
 """
 import asyncio
 import logging
+
 import chainlit as cl
 from dotenv import load_dotenv
 from openai.types.beta.threads.runs import FileSearchToolCall
@@ -32,7 +33,7 @@ async def on_chat_start():
     cl_message = cl.Message(content='here we go', author="User")
     await cl_message.send()
 
-    client = initialize_openai_client('../../.env')
+    client = initialize_openai_client()
 
     e = EventHandler(client=client)
 

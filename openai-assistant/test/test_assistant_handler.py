@@ -15,7 +15,7 @@ load_dotenv('../.env', override=True)
 TEST_ASSISTANT_ID = os.getenv('TEST_ASSISTANT_ID')
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
-client = initialize_openai_client('../.env')
+client = initialize_openai_client()
 
 
 class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
