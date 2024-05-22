@@ -76,3 +76,8 @@ async def on_message(message_from_ui: cl.Message):
         logger.error(e)
         # This exposes OAI to user, might want to throw a custom error here
         await cl.Message(author='System', content=e.body['message']).send()
+
+if __name__ == "__main__":
+    from chainlit.cli import run_chainlit
+
+    run_chainlit(__file__)
