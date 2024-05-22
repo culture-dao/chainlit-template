@@ -79,6 +79,9 @@ class OpenAIAdapter:
         )
 
     def get_content(self) -> str:
+        """
+        Replace the annotation citation reference with an [n] type reference instead
+        """
         value: str = self.message.content[0].text.value
 
         for i, annotation in enumerate(self.annotations):
@@ -88,14 +91,11 @@ class OpenAIAdapter:
             # Replace the citation text with the citation reference
             # Since we're working backward, we don't need to adjust the start and end indices)
 
-            if self.has_quote(annotation):
-                value = (
-                        value[: annotation.start_index]
-                        + citation_ref
-                        + value[annotation.end_index:]
-                )
-            else:  # We've got a bug, OAI forgot to return the citation, so remove the reference
-                value = value[: annotation.start_index] + value[annotation.end_index:]
+            value = (
+                    value[: annotation.start_index]
+                    + citation_ref
+                    + value[annotation.end_index:]
+            )
 
         return value
 
