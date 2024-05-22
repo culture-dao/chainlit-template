@@ -49,14 +49,14 @@ step_with_id = {
 
 class TestChatResume(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
-        self.client = initialize_openai_client("../.env")
+        self.client = initialize_openai_client()
 
     async def test_try_step(self):
-        from app.cl_events.on_chat_resume import try_step
+        from cl_events.on_chat_resume import try_step
         result = await try_step(step_without_id, self.client)
         self.assertEqual(None, result)
 
     async def test_step_valid(self):
-        from app.cl_events.on_chat_resume import try_step
+        from cl_events.on_chat_resume import try_step
         result = await try_step(step_with_id, self.client)
         self.assertEqual(Thread, type(result))
