@@ -169,6 +169,6 @@ cython_debug/
 /langflow/**
 /langserve/**
 
-/openai-assistant/test/**/.chainlit
-/openai-assistant/test/**/chainlit.md
+/openai_assistant/test/**/.chainlit
+/openai_assistant/test/**/chainlit.md
 
