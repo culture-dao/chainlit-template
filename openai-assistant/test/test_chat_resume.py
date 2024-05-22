@@ -56,6 +56,7 @@ class TestChatResume(unittest.IsolatedAsyncioTestCase):
         result = await try_step(step_without_id, self.client)
         self.assertEqual(None, result)
 
+    @unittest.skip("step_with_id needs valid thread")
     async def test_step_valid(self):
         from cl_events.on_chat_resume import try_step
         result = await try_step(step_with_id, self.client)
