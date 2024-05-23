@@ -24,7 +24,7 @@ async def on_chat_resume_logic(cl_thread: ThreadDict, client):
                     cl.user_session.set("thread", thread)
                     response_content = "Welcome back! I'm ready to assist you. How can I help you today?"
             except NotFoundError:
-                pass
+                raise ValueError("Thread ID is no longer accessible.")
             break
     logger.info(response_content)
     await cl.Message(content=response_content).send()
