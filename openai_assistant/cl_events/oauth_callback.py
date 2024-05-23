@@ -6,7 +6,7 @@ from typing import Dict, Optional, Callable, Any
 import chainlit as cl
 import requests
 
-from mailchimp import add_user_to_mailchimp_list
+from utils.mailchimp import add_user_to_mailchimp_list
 
 discord_webhook = os.environ.get("DISCORD_WEBHOOK")
 

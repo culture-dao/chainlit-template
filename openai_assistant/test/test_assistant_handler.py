@@ -6,8 +6,8 @@ import chainlit as cl
 from dotenv import load_dotenv
 from openai.types.beta import Assistant
 
-from chainlit_utils import DictToObject
 from utils.assistant_handler import AssistantHandler
+from utils.chainlit_utils import DictToObject
 from utils.openai_utils import initialize_openai_client
 
 load_dotenv('../.env', override=True)

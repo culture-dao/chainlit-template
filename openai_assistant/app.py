@@ -1,17 +1,16 @@
 import logging
 import os
-from typing import List, Dict, Optional
-
+from typing import List
 
 import chainlit as cl
 from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
 
-from chainlit_utils import process_files
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
+from utils.chainlit_utils import process_files
 from utils.openai_utils import initialize_openai_client
 
 logging.basicConfig(level=logging.INFO)
