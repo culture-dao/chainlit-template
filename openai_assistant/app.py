@@ -21,7 +21,8 @@ client = initialize_openai_client()
 logger = logging.getLogger("chainlit")
 
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
-
+if not ASSISTANT_NAME:
+    raise Exception("MISSING ASSISTANT NAME")
 
 # Uncomment for live deployments!
 # @cl.oauth_callback
