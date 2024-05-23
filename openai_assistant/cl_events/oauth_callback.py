@@ -56,7 +56,7 @@ async def post_to_discord(webhook_url, raw_user_data, action):
 
     data = {
         "content": f"{name}({email}) has performed the following action: {action}",
-        "username": "APP_NAME"
+        "username": "APP_NAME"  # TODO: make config/env var
     }
 
     try:

@@ -13,11 +13,10 @@ from openai.types import FileObject
 from openai.types.beta.threads import (
     Message as ThreadMessage
 )
-
 from openai.types.beta.threads.file_citation_annotation import FileCitation as TextAnnotationFileCitationFileCitation, \
     FileCitationAnnotation as TextAnnotationFileCitation
 
-from .openai_utils import initialize_openai_client
+from utils.openai_utils import initialize_openai_client
 
 
 class OpenAIAdapter:
@@ -26,7 +25,7 @@ class OpenAIAdapter:
     """
 
     def __init__(self, message: ThreadMessage) -> None:
-        self.client = initialize_openai_client("../../.env")
+        self.client = initialize_openai_client()
         self._id: str = message.id
         self.message: ThreadMessage = message
         # We're putting these in reverse order so we can work backward in get_content
@@ -80,6 +79,9 @@ class OpenAIAdapter:
         )
 
     def get_content(self) -> str:
+        """
+        Replace the annotation citation reference with an [n] type reference instead
+        """
         value: str = self.message.content[0].text.value
 
         for i, annotation in enumerate(self.annotations):
@@ -89,14 +91,11 @@ class OpenAIAdapter:
             # Replace the citation text with the citation reference
             # Since we're working backward, we don't need to adjust the start and end indices)
 
-            if self.has_quote(annotation):
-                value = (
-                        value[: annotation.start_index]
-                        + citation_ref
-                        + value[annotation.end_index:]
-                )
-            else:  # We've got a bug, OAI forgot to return the citation, so remove the reference
-                value = value[: annotation.start_index] + value[annotation.end_index:]
+            value = (
+                    value[: annotation.start_index]
+                    + citation_ref
+                    + value[annotation.end_index:]
+            )
 
         return value
 

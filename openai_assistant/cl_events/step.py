@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 
 import chainlit as cl
 from dotenv import load_dotenv
+from openai import AsyncOpenAI
 from openai.types.beta import FileSearchToolParam
 from openai.types.beta.threads.message_create_params import Attachment
 from openai.types.beta.threads.runs import RunStep
@@ -12,11 +13,11 @@ from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
 
 from utils.assistant_handler import assistant_handler
 from utils.event_handler import EventHandler
-from utils.openai_utils import initialize_openai_client
 
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
 
+# TODO: Migrate tool_call and DictToObject to event handler code
 async def handle_tool_call(step_details, step_references, step, tool_outputs):
     tool_map = {}
     if step_details.type == "tool_calls":
@@ -80,7 +81,7 @@ async def step_logic(
         thread_id: str,
         human_query: str,
         file_ids: List[str],
-        client=None
+        client: AsyncOpenAI
 ):
     attachments: List[Attachment] | None = None
     if file_ids:
@@ -92,9 +93,6 @@ async def step_logic(
     await client.beta.threads.messages.create(
         thread_id=thread_id, role="user", content=human_query, attachments=attachments
     )
-
-    client = initialize_openai_client()
-    load_dotenv(dotenv_path='../', override=True)
 
     e = EventHandler(client=client)
 

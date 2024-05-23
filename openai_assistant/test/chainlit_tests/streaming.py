@@ -5,6 +5,7 @@ and you'll see multiple runs and messages being passed through.
 
 """
 import logging
+import os
 
 import chainlit as cl
 from dotenv import load_dotenv
@@ -14,9 +15,9 @@ from utils.openai_utils import initialize_openai_client, get_playground_url
 
 logging.basicConfig(level=logging.INFO)
 
-load_dotenv(dotenv_path='../', override=True)
+load_dotenv(dotenv_path='../../.env', override=True)
 
-assistant_id = 'asst_2lanl1dvlTkCpOofxiPrHvzr'
+assistant_id = os.getenv('TEST_ASSISTANT_ID')
 
 
 @cl.on_chat_start
