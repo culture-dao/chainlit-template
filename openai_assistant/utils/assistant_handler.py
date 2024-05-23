@@ -2,13 +2,13 @@ import asyncio
 import logging
 from typing import List, Iterable
 
-from openai import AsyncOpenAI
+
 from openai.pagination import AsyncCursorPage
 from openai.types.beta import Assistant, AssistantToolParam, FileSearchToolParam
 from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
 from utils.openai_handler import OpenAIHandler
-from utils.openai_utils import AsyncPaginatorHelper, initialize_openai_client
+from utils.openai_utils import AsyncPaginatorHelper
 
 logger = logging.getLogger("chainlit")
 
@@ -16,11 +16,8 @@ ASSISTANT_CONFIG_PATH = 'assistant.yaml'
 
 
 class AssistantHandler(OpenAIHandler):
-    def __init__(self, config_path: str, client: AsyncOpenAI = None):
+    def __init__(self, config_path: str):
         super().__init__(config_path, Assistant)
-        self.client = client
-        if self.client is None:
-            self.client = initialize_openai_client()
 
     async def list(self):
         return await self._assistants_list()
@@ -103,6 +100,7 @@ assistant_handler: AssistantHandler = AssistantHandler(ASSISTANT_CONFIG_PATH)
 
 
 async def main() -> AssistantHandler:
+
     await assistant_handler.init()
 
     default_agent: Assistant = assistant_handler.find_by_name("Default Agent")
