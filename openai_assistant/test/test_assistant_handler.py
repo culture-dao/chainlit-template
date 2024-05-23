@@ -21,7 +21,7 @@ client = initialize_openai_client()
 class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
-        self.handler = AssistantHandler('', client)
+        self.handler = AssistantHandler('')
 
     async def test_assistant_retrieve_valid(self):
         result = await self.handler._assistant_retrieve(TEST_ASSISTANT_ID)
