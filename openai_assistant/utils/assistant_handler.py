@@ -85,7 +85,7 @@ class AssistantHandler(OpenAIHandler):
     async def attach_file_search(self, assistant_id, vector_store_id=None) -> Assistant:
         if vector_store_id is None:
             # get "Default Datastore"
-            vector_store_id = 'vs_ZpE5J5qh5KMRMrwXkzsAxobM'
+            raise Exception("assistant_handler.attach_file_search: Missing Datastore")
         tool = ToolResourcesFileSearch(vector_store_ids=[vector_store_id])
         tool_resources = ToolResources(file_search=tool)
 
@@ -105,17 +105,17 @@ assistant_handler: AssistantHandler = AssistantHandler(ASSISTANT_CONFIG_PATH)
 async def main() -> AssistantHandler:
     await assistant_handler.init()
 
-    default_agent: Assistant = assistant_handler.find_by_name("Liminal Flow Agent")
+    default_agent: Assistant = assistant_handler.find_by_name("Default Agent")
     if not default_agent.tool_resources.file_search:
         default_agent = await assistant_handler.attach_file_search(default_agent)
 
     # Hacky, doesn't save the config
-    assistant_handler.objects["Liminal Flow Agent"] = default_agent
+    assistant_handler.objects["Default Agent"] = default_agent
 
     return assistant_handler
 
 
 if __name__ == '__main__':
-    assistants = asyncio.run(main())
+    asyncio.run(main())
 
 
