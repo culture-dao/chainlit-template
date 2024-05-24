@@ -157,7 +157,7 @@ def list_to_dict(_list: list[[BaseModel]]) -> dict[str, object]:
     _dict = {}
 
     for obj in _list:
-        _dict[obj.name] = obj
+        _dict[obj.id] = obj
 
     return _dict
 

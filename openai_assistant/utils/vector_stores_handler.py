@@ -19,7 +19,6 @@ logging.getLogger("httpx").setLevel("WARNING")
 class VectorStoresHandler(OpenAIHandler):
     def __init__(self, config_path: str, client: AsyncOpenAI = None):
         super().__init__(config_path, VectorStore)
-        self.client = client
 
     async def list(self):
         return await self.vector_stores_list()
@@ -69,7 +68,7 @@ async def main():
     vector_stores = await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).init()
     default_store = vector_stores.find_by_name("Default Datastore")
     if not default_store:
-        await vector_stores_create({'name': "Default Datastore"})
+        await vector_stores.create({'name': "Default Datastore"})
 
 
 if __name__ == "__main__":
