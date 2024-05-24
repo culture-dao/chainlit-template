@@ -1,9 +1,12 @@
+import base64
 import logging
 import os
+from io import BytesIO
 from typing import List, Dict, Optional
 
-
 import chainlit as cl
+import httpx
+from chainlit.element import ElementBased
 from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
@@ -28,7 +31,6 @@ ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 # async def oauth_callback(provider_id: str, token: str, raw_user_data: Dict[str, str], default_app_user: cl.User) -> \
 #         Optional[cl.User]:
 #     return await oauth_callback_logic(provider_id, token, raw_user_data, default_app_user)
-
 
 @cl.on_chat_start
 async def on_chat_start_callback():
@@ -76,6 +78,103 @@ async def on_message(message_from_ui: cl.Message):
         logger.error(e)
         # This exposes OAI to user, might want to throw a custom error here
         await cl.Message(author='System', content=e.body['message']).send()
+
+
+@cl.on_audio_chunk
+async def on_audio_chunk(chunk: cl.AudioChunk):
+    if chunk.isStart:
+        buffer = BytesIO()
+        buffer.name = f"input_audio.{chunk.mimeType.split('/')[1]}"
+        cl.user_session.set("audio_buffer", buffer)
+        cl.user_session.set("audio_mime_type", chunk.mimeType)
+    cl.user_session.get("audio_buffer").write(chunk.data)
+
+
+@cl.on_audio_end
+async def on_audio_end(elements: list[ElementBased]):
+    audio_buffer: BytesIO = cl.user_session.get("audio_buffer")
+    audio_buffer.seek(0)
+    audio_file = audio_buffer.read()
+    audio_mime_type: str = cl.user_session.get("audio_mime_type")
+
+    input_audio_el = cl.Audio(
+        mime=audio_mime_type, content=audio_file, name=""
+    )
+
+    whisper_input = (audio_buffer.name, audio_file, audio_mime_type)
+    transcription = await speech_to_text(whisper_input)
+
+    await cl.Message(
+        author="You",
+        content="",
+        type="user_message",
+        elements=[input_audio_el, *elements]
+    ).send()
+
+    await cl.Message(
+        author="You",
+        type="user_message",
+        content=transcription,
+        elements=[]
+    ).send()
+
+    images = [file for file in elements if "image" in file.mime]
+
+    answer_message = await cl.Message(content="").send()
+
+    text_answer = await generate_text_answer(transcription, images)
+
+    answer_message.content = text_answer
+    await answer_message.update()
+
+
+@cl.step(type="tool")
+async def speech_to_text(audio_file):
+    response = await client.audio.transcriptions.create(
+        model="whisper-1", file=audio_file
+    )
+
+    return response.text
+
+
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+
+@cl.step(type="tool")
+async def generate_text_answer(transcription, images):
+    if images:
+        # Only process the first 3 images
+        images = images[:3]
+
+        images_content = [
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:{image.mime};base64,{encode_image(image.path)}"
+                },
+            }
+            for image in images
+        ]
+
+        model = "gpt-4-turbo"
+        messages = [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": transcription}, *images_content],
+            }
+        ]
+    else:
+        model = "gpt-3.5-turbo"
+        messages = [{"role": "user", "content": transcription}]
+
+    response = await client.chat.completions.create(
+        messages=messages, model=model, temperature=0.3
+    )
+
+    return response.choices[0].message.content
+
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit
