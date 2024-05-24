@@ -22,7 +22,7 @@ class EventHandler(AsyncAssistantEventHandler):
     def __init__(self, client):
         super().__init__()
         self.event_map = {}  # for debugging
-        self.message_references: Dict[str, cl.Message] | {} = {}  # map of openai.Message.id's to cl.Messages
+        self.current_message = None
         # Not 100% we need this in async context, holdover from cl cookbook
         # Maybe a single reference will suffice?
         self.client = client  # Because we look up FileObjects in annotations loop.
@@ -45,29 +45,14 @@ class EventHandler(AsyncAssistantEventHandler):
         """
         Don't really care here, update the message on delta
         """
-        logging.debug('on_text_created')
+        logging.info('on_text_created')
+        self.current_message = cl.Message(content='')
 
     async def on_message_created(self, message: Message) -> None:
-        logging.info(f'on_message_created: {message.id}')
-        cl_message = cl.Message(content='')
-        # Update the references so the OpenAI message id maps to the Chainlit message
-        self.message_references[message.id] = cl_message
+        logging.debug(f'on_message_created: {message.id}')
 
-    async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
-        # Make sure we only have 1 content object in the lists
-        # OAI usually returns one, but let's not assume
-        if len(delta.content) > 1:
-            logging.error("Content length was more than 1!")
-            raise ValueError("Content length must be 1 or less.")
-
-        cl_message = self.message_references[snapshot.id]
-
-        # Update the message in the UI/persistence
-        logging.info(f"Streaming delta value: {delta.content[0].text.value}")
-        await cl_message.stream_token(delta.content[0].text.value)
-
-    async def on_message_done(self, message: Message):
-        await self.message_references[message.id].send()
+    async def on_text_delta(self, delta, snapshot):
+        await self.current_message.stream_token(delta.value)
 
     @cl.step
     async def on_tool_call_created(self, tool_call):
@@ -122,14 +107,15 @@ class EventHandler(AsyncAssistantEventHandler):
         # After the message has been processed and sent handle the annotations and update the message
         message = self.current_event.data
         await process_thread_message(
-            message_references=self.message_references,
+            message=self.current_message,
             thread_message=message,
             client=self.client
         )
+        await self.current_message.send()
 
 
 async def process_thread_message(
-        message_references: Dict[str, cl.Message],
+        message: cl.Message,
         thread_message: ThreadMessage,
         client
 ):
@@ -144,18 +130,10 @@ async def process_thread_message(
         content = adapter.get_content()
         elements = adapter.get_elements()
 
-        # If the message ID already exists in the reference dictionary
-        if thread_message.id in message_references:
-            # Retrieve the existing message from references
-            msg = message_references[thread_message.id]
-
-            # Update the message content with the new text and elements
-            # msg.content = content_message.text.value
-            msg.content = content
-            msg.elements = elements
-            await msg.update()
-        else:
-            raise Exception
+        # Update the message content with the new text and elements
+        message.content = content
+        message.elements = elements
+        await message.update()
     # Check if the message content is of type image file
     elif isinstance(content_message, MessageContentImageFile):
         # Retrieve the image file ID
@@ -171,16 +149,11 @@ async def process_thread_message(
                 size="large",
             ),
         ]
-
-        # If the message ID does not exist in the reference dictionary
-        if thread_message.id not in message_references:
-            # Create a new message with no text content but including the image element
-            message_references[thread_message.id] = cl.Message(
+        # Create a new message with no text content but including the image element
+        await cl.Message(
                 author=thread_message.role,
                 content="",
                 elements=elements,
-            )
-            # Asynchronously send the newly created message
-            await message_references[thread_message.id].send()
+            ).send()
     else:
         logger.error("unknown message type", type(content_message))
