@@ -25,7 +25,7 @@ async def on_chat_start():
     client = initialize_openai_client()
     thread = await client.beta.threads.create()
 
-    logging.info(get_playground_url(thread.id, assistant_id))
+    logging.info(get_playground_url(assistant_id, thread.id))
 
     # The question to ask the model
     question = 'Search the docs and tell me something about it.'
