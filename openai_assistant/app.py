@@ -132,18 +132,24 @@ async def on_audio_end(elements: list[ElementBased]):
 @cl.step(type="tool", name="Transcription")
 async def speech_to_text(audio_file):
     current_step = cl.context.current_step
-    current_step.output = "Running transcription..."
-    await current_step.update()
+    try:
+        current_step.output = "Running transcription..."
+        await current_step.update()
 
-    await asyncio.sleep(10)
+        response = await client.audio.transcriptions.create(
+            model="whisper-1", file=audio_file
+        )
 
-    response = await client.audio.transcriptions.create(
-        model="whisper-1", file=audio_file
-    )
+        current_step.output = "Transcription completed"
+        await current_step.update()
 
-    current_step.output = "Transcription completed"
+        return response.text
 
-    return response.text
+    except Exception as e:
+        error_message = f"Error during transcription: {str(e)}"
+        current_step.output = error_message
+        await current_step.update()
+        return error_message
 
 
 def encode_image(image_path):
