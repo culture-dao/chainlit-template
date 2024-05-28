@@ -1,8 +1,7 @@
 import unittest
 
-
 from fixture import raw_user_data
-from mailchimp import add_user_to_mailchimp_list
+from utils.mailchimp import add_user_to_mailchimp_list
 
 
 @unittest.skip("Need API Key")

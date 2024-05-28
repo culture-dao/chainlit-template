@@ -8,11 +8,11 @@ from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
 
-from chainlit_utils import process_files
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
 import cl_events.on_audio
+from utils.chainlit_utils import process_files
 from utils.openai_utils import initialize_openai_client
 
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +24,10 @@ logger = logging.getLogger("chainlit")
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
 cl_events.on_audio.init()
+
+if not ASSISTANT_NAME:
+    raise Exception("MISSING ASSISTANT NAME")
+
 
 # Uncomment for live deployments!
 # @cl.oauth_callback
