@@ -101,15 +101,15 @@ async def on_audio_end(elements: list[ElementBased]):
         mime=audio_mime_type, content=audio_file, name=""
     )
 
-    whisper_input = (audio_buffer.name, audio_file, audio_mime_type)
-    transcription = await speech_to_text(whisper_input)
-
     await cl.Message(
         author="You",
         content="",
         type="user_message",
         elements=[input_audio_el, *elements]
     ).send()
+
+    whisper_input = (audio_buffer.name, audio_file, audio_mime_type)
+    transcription = await speech_to_text(whisper_input)
 
     await cl.Message(
         author="You",
