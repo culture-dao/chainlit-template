@@ -1,12 +1,11 @@
-import asyncio
 import base64
 import logging
 import os
 from io import BytesIO
-from typing import List, Dict, Optional
+from typing import List
 
 import chainlit as cl
-import httpx
+
 from chainlit.element import ElementBased
 from chainlit.types import ThreadDict
 from literalai import Thread
