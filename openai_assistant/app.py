@@ -32,7 +32,7 @@ if not ASSISTANT_NAME:
 
 @cl.on_chat_start
 async def on_chat_start_callback():
-    return await on_start_chat_logic(client)
+    return await on_start_chat_logic(client, ASSISTANT_NAME)
 
 
 # Simple, local auth for dev, don't use in PROD!
