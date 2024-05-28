@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import logging
 import os
@@ -128,11 +129,19 @@ async def on_audio_end(elements: list[ElementBased]):
     await answer_message.update()
 
 
-@cl.step(type="tool")
+@cl.step(type="tool", name="Transcription")
 async def speech_to_text(audio_file):
+    current_step = cl.context.current_step
+    current_step.output = "Running transcription..."
+    await current_step.update()
+
+    await asyncio.sleep(10)
+
     response = await client.audio.transcriptions.create(
         model="whisper-1", file=audio_file
     )
+
+    current_step.output = "Transcription completed"
 
     return response.text
 
@@ -142,7 +151,6 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-@cl.step(type="tool")
 async def generate_text_answer(transcription, images):
     if images:
         # Only process the first 3 images
