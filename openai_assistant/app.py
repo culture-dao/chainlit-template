@@ -111,21 +111,14 @@ async def on_audio_end(elements: list[ElementBased]):
     whisper_input = (audio_buffer.name, audio_file, audio_mime_type)
     transcription = await speech_to_text(whisper_input)
 
-    await cl.Message(
+    message = await cl.Message(
         author="You",
         type="user_message",
         content=transcription,
         elements=[]
     ).send()
 
-    images = [file for file in elements if "image" in file.mime]
-
-    answer_message = await cl.Message(content="").send()
-
-    text_answer = await generate_text_answer(transcription, images)
-
-    answer_message.content = text_answer
-    await answer_message.update()
+    await on_message(message)
 
 
 @cl.step(type="tool", name="Transcription")
@@ -149,44 +142,6 @@ async def speech_to_text(audio_file):
         current_step.output = error_message
         await current_step.update()
         return error_message
-
-
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
-
-async def generate_text_answer(transcription, images):
-    if images:
-        # Only process the first 3 images
-        images = images[:3]
-
-        images_content = [
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:{image.mime};base64,{encode_image(image.path)}"
-                },
-            }
-            for image in images
-        ]
-
-        model = "gpt-4-turbo"
-        messages = [
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": transcription}, *images_content],
-            }
-        ]
-    else:
-        model = "gpt-3.5-turbo"
-        messages = [{"role": "user", "content": transcription}]
-
-    response = await client.chat.completions.create(
-        messages=messages, model=model, temperature=0.3
-    )
-
-    return response.choices[0].message.content
 
 
 if __name__ == "__main__":
