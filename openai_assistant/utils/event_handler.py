@@ -111,7 +111,6 @@ class EventHandler(AsyncAssistantEventHandler):
             thread_message=message,
             client=self.client
         )
-        await self.current_message.send()
 
 
 async def process_thread_message(
