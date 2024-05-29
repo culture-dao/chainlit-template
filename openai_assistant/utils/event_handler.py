@@ -56,7 +56,6 @@ class EventHandler(AsyncAssistantEventHandler):
             thread_message=message,
             client=self.client
         )
-        await self.current_message.send()
 
     @cl.step
     async def on_tool_call_created(self, tool_call):
@@ -106,15 +105,6 @@ class EventHandler(AsyncAssistantEventHandler):
 
     async def on_run_step_done(self, run):
         logging.debug(f"on_run_step_done {run.id}: {self.event_map}")
-
-    async def on_text_done(self, text: Text) -> None:
-        # After the message has been processed and sent handle the annotations and update the message
-        message = self.current_event.data
-        await process_thread_message(
-            message=self.current_message,
-            thread_message=message,
-            client=self.client
-        )
 
 
 async def process_thread_message(
