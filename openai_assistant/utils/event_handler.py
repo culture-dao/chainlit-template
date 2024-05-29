@@ -3,12 +3,11 @@ AsyncAssistantEventHandler for Chainlit
 """
 
 import logging
-from typing import Dict
 import chainlit as cl
 from chainlit import Step
 from openai.lib.streaming import AsyncAssistantEventHandler
-from openai.types.beta.threads import Run, Text, Message, MessageDelta, Message as ThreadMessage, \
-    TextContentBlock as MessageContentText, ImageFileContentBlock as MessageContentImageFile
+from openai.types.beta.threads import Run, Text, Message, \
+    TextContentBlock, ImageFileContentBlock
 from openai.types.beta.threads.runs import RunStep, \
     ToolCallDelta, ToolCall
 from utils.annotations import OpenAIAdapter
@@ -23,8 +22,6 @@ class EventHandler(AsyncAssistantEventHandler):
         super().__init__()
         self.event_map = {}  # for debugging
         self.current_message = None
-        # Not 100% we need this in async context, holdover from cl cookbook
-        # Maybe a single reference will suffice?
         self.client = client  # Because we look up FileObjects in annotations loop.
 
     async def on_run_step_created(self, run_step: RunStep):
@@ -41,18 +38,25 @@ class EventHandler(AsyncAssistantEventHandler):
         else:
             self.event_map[event_type] = 1
 
+    # async def on_message_created(self, message: Message) -> None:
+    #     logging.debug(f'on_message_created: {message.id}')
+
     async def on_text_created(self, text: Text) -> None:
-        """
-        Don't really care here, update the message on delta
-        """
         logging.info('on_text_created')
         self.current_message = cl.Message(content='')
 
-    async def on_message_created(self, message: Message) -> None:
-        logging.debug(f'on_message_created: {message.id}')
-
     async def on_text_delta(self, delta, snapshot):
         await self.current_message.stream_token(delta.value)
+
+    async def on_text_done(self, text: Text) -> None:
+        # After the message has been processed and sent handle the annotations and update the message
+        message = self.current_event.data
+        await process_thread_message(
+            message=self.current_message,
+            thread_message=message,
+            client=self.client
+        )
+        await self.current_message.send()
 
     @cl.step
     async def on_tool_call_created(self, tool_call):
@@ -115,14 +119,14 @@ class EventHandler(AsyncAssistantEventHandler):
 
 async def process_thread_message(
         message: cl.Message,
-        thread_message: ThreadMessage,
+        thread_message: Message,
         client
 ):
     # We asserted earlier that this should only ever be one content object
     content_message = thread_message.content[0]
 
     # Check if the message content is of type text
-    if isinstance(content_message, MessageContentText):
+    if isinstance(content_message, TextContentBlock):
         # Handle the annotations and get the updated content and elements
         adapter = OpenAIAdapter(thread_message)
         await adapter.main()
@@ -134,7 +138,7 @@ async def process_thread_message(
         message.elements = elements
         await message.update()
     # Check if the message content is of type image file
-    elif isinstance(content_message, MessageContentImageFile):
+    elif isinstance(content_message, ImageFileContentBlock):
         # Retrieve the image file ID
         image_id = content_message.image_file.file_id
         # Asynchronously retrieve the content of the image file
