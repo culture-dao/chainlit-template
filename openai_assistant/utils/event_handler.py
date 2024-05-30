@@ -3,12 +3,11 @@ AsyncAssistantEventHandler for Chainlit
 """
 
 import logging
-from typing import Dict
 import chainlit as cl
 from chainlit import Step
 from openai.lib.streaming import AsyncAssistantEventHandler
-from openai.types.beta.threads import Run, Text, Message, MessageDelta, Message as ThreadMessage, \
-    TextContentBlock as MessageContentText, ImageFileContentBlock as MessageContentImageFile
+from openai.types.beta.threads import Run, Text, Message, \
+    TextContentBlock, ImageFileContentBlock
 from openai.types.beta.threads.runs import RunStep, \
     ToolCallDelta, ToolCall
 from utils.annotations import OpenAIAdapter
@@ -26,6 +25,7 @@ class EventHandler(AsyncAssistantEventHandler):
         self.current_tool_call = None
         # Not 100% we need this in async context, holdover from cl cookbook
         # Maybe a single reference will suffice?
+        self.current_message = None
         self.client = client  # Because we look up FileObjects in annotations loop.
 
     async def on_run_step_created(self, run_step: RunStep):
@@ -42,33 +42,24 @@ class EventHandler(AsyncAssistantEventHandler):
         else:
             self.event_map[event_type] = 1
 
+    # async def on_message_created(self, message: Message) -> None:
+    #     logging.debug(f'on_message_created: {message.id}')
+
     async def on_text_created(self, text: Text) -> None:
-        """
-        Don't really care here, update the message on delta
-        """
-        logging.debug('on_text_created')
+        logging.info('on_text_created')
+        self.current_message = cl.Message(content='')
 
-    async def on_message_created(self, message: Message) -> None:
-        logging.info(f'on_message_created: {message.id}')
-        cl_message = cl.Message(content='')
-        # Update the references so the OpenAI message id maps to the Chainlit message
-        self.message_references[message.id] = cl_message
+    async def on_text_delta(self, delta, snapshot):
+        await self.current_message.stream_token(delta.value)
 
-    async def on_message_delta(self, delta: MessageDelta, snapshot: Message):
-        # Make sure we only have 1 content object in the lists
-        # OAI usually returns one, but let's not assume
-        if len(delta.content) > 1:
-            logging.error("Content length was more than 1!")
-            raise ValueError("Content length must be 1 or less.")
-
-        cl_message = self.message_references[snapshot.id]
-
-        # Update the message in the UI/persistence
-        logging.info(f"Streaming delta value: {delta.content[0].text.value}")
-        await cl_message.stream_token(delta.content[0].text.value)
-
-    async def on_message_done(self, message: Message):
-        await self.message_references[message.id].send()
+    async def on_text_done(self, text: Text) -> None:
+        # After the message has been processed and sent handle the annotations and update the message
+        message = self.current_event.data
+        await process_thread_message(
+            message=self.current_message,
+            thread_message=message,
+            client=self.client
+        )
 
     async def on_tool_call_created(self, tool_call):
         step: Step = cl.context.current_step
@@ -141,46 +132,29 @@ class EventHandler(AsyncAssistantEventHandler):
     async def on_run_step_done(self, run):
         logging.debug(f"on_run_step_done {run.id}: {self.event_map}")
 
-    async def on_text_done(self, text: Text) -> None:
-        # After the message has been processed and sent handle the annotations and update the message
-        message = self.current_event.data
-        await process_thread_message(
-            message_references=self.message_references,
-            thread_message=message,
-            client=self.client
-        )
-
 
 async def process_thread_message(
-        message_references: Dict[str, cl.Message],
-        thread_message: ThreadMessage,
+        message: cl.Message,
+        thread_message: Message,
         client
 ):
     # We asserted earlier that this should only ever be one content object
     content_message = thread_message.content[0]
 
     # Check if the message content is of type text
-    if isinstance(content_message, MessageContentText):
+    if isinstance(content_message, TextContentBlock):
         # Handle the annotations and get the updated content and elements
         adapter = OpenAIAdapter(thread_message)
         await adapter.main()
         content = adapter.get_content()
         elements = adapter.get_elements()
 
-        # If the message ID already exists in the reference dictionary
-        if thread_message.id in message_references:
-            # Retrieve the existing message from references
-            msg = message_references[thread_message.id]
-
-            # Update the message content with the new text and elements
-            # msg.content = content_message.text.value
-            msg.content = content
-            msg.elements = elements
-            await msg.update()
-        else:
-            raise Exception
+        # Update the message content with the new text and elements
+        message.content = content
+        message.elements = elements
+        await message.update()
     # Check if the message content is of type image file
-    elif isinstance(content_message, MessageContentImageFile):
+    elif isinstance(content_message, ImageFileContentBlock):
         # Retrieve the image file ID
         image_id = content_message.image_file.file_id
         # Asynchronously retrieve the content of the image file
@@ -194,16 +168,11 @@ async def process_thread_message(
                 size="large",
             ),
         ]
-
-        # If the message ID does not exist in the reference dictionary
-        if thread_message.id not in message_references:
-            # Create a new message with no text content but including the image element
-            message_references[thread_message.id] = cl.Message(
+        # Create a new message with no text content but including the image element
+        await cl.Message(
                 author=thread_message.role,
                 content="",
                 elements=elements,
-            )
-            # Asynchronously send the newly created message
-            await message_references[thread_message.id].send()
+            ).send()
     else:
         logger.error("unknown message type", type(content_message))

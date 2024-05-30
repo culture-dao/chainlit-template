@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import chainlit as cl
+
 from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
@@ -10,6 +11,7 @@ from openai import BadRequestError
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
+import cl_events.on_audio
 from utils.chainlit_utils import process_files
 from utils.openai_utils import initialize_openai_client
 
@@ -20,8 +22,12 @@ client = initialize_openai_client()
 logger = logging.getLogger("chainlit")
 
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
+
+cl_events.on_audio.init()
+
 if not ASSISTANT_NAME:
     raise Exception("MISSING ASSISTANT NAME")
+
 
 # Uncomment for live deployments!
 # @cl.oauth_callback
@@ -76,6 +82,7 @@ async def on_message(message_from_ui: cl.Message):
         logger.error(e)
         # This exposes OAI to user, might want to throw a custom error here
         await cl.Message(author='System', content=e.body['message']).send()
+
 
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit
