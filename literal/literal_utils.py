@@ -8,7 +8,7 @@ from literalai import LiteralClient
 # The username of the user you want to delete
 identifier = ""
 
-load_dotenv()
+load_dotenv('../openai_assistant/.env', override=True)
 logging.basicConfig(level=logging.INFO)
 
 LITERAL_API_KEY = os.getenv("LITERAL_API_KEY")

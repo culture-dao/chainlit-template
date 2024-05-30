@@ -1,0 +1,10 @@
+template_agent:
+  description: "A personal knowledge management assistant for your project."
+  instructions: "You are a friendly assistant"
+  metadata:
+    project: "chainlit-template"
+    version: "1.0"
+    author: "Wade.Digital"
+  model: "gpt-4-turbo"
+  name: "Default Agent"
+
