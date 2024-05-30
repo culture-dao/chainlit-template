@@ -83,6 +83,25 @@ async def handle_tool_call(step_details, step_references, step, tool_outputs):
                 )
 
 
+async def validate_upload(thread: Thread, client: AsyncOpenAI):
+    if len(thread.tool_resources.file_search.vector_store_ids) > 0:
+        files_list: List[VectorStoreFile] = []
+        files: AsyncPaginator[
+            VectorStoreFile, AsyncCursorPage[VectorStoreFile]] = await client.beta.vector_stores.files.list(
+            thread.tool_resources.file_search.vector_store_ids[0])
+
+        async for file in files:
+            logging.info(f"File content: {file}")
+            files_list.append(file)
+
+        latest_file: VectorStoreFile = max(files_list, key=lambda x: x.created_at)
+        logging.info(f"Latest file: {latest_file}")
+
+        if latest_file.last_error is not None:
+            logging.info("The last file upload failed!")
+            raise RuntimeError("There was an error with the file(s) you uploaded!")
+
+
 async def step_logic(
         thread_id: str,
         human_query: str,
@@ -101,21 +120,8 @@ async def step_logic(
     )
 
     thread: Thread = await client.beta.threads.retrieve(thread_id)
-    if file_ids and len(thread.tool_resources.file_search.vector_store_ids) > 0:
-        files_list: List[VectorStoreFile] = []
-        files: AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]] = await client.beta.vector_stores.files.list(thread.tool_resources.file_search.vector_store_ids[0])
-
-        async for file in files:
-            logging.info(f"File content: {file}")
-            files_list.append(file)
-
-        latest_file: VectorStoreFile = max(files_list, key=lambda x: x.created_at)
-        logging.info(f"Latest file: {latest_file}")
-
-        if latest_file.last_error is not None:
-            logging.info("The last file upload failed!")
-            await cl.Message(content="There was an error with the file(s) you uploaded!").send()
-            return
+    if file_ids:
+        await validate_upload(thread=thread, client=client)
 
     e = EventHandler(client=client)
 
