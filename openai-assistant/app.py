@@ -41,7 +41,11 @@ def rename(orig_author: str):
 
 @cl.on_chat_resume
 async def on_chat_resume_callback(thread: ThreadDict):
-    return await on_chat_resume_logic(thread, client)
+    try:
+        return await on_chat_resume_logic(thread, client)
+    except ValueError as e:
+        logger.error(f"ValueError occurred in on_chat_resume_logic: {e}")
+        # Handle the exception as needed
 
 
 @cl.step(name=ASSISTANT_NAME, type="run", root=True)
