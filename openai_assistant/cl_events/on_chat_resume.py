@@ -7,34 +7,43 @@ from openai import NotFoundError
 
 
 async def on_chat_resume_logic(cl_thread: ThreadDict, client):
-    """
-    This function needs to make sure we can retrieve the original OAI Thread
-    """
-    steps = cl_thread.get('steps')
-    # Find the right step that has the thread id we need.
-    # Once found, retrieve it and set it in the session.
-    for step in steps:
-        thread = await try_step(step, client)
-        if thread:
-            break
+    oai_thread_id = get_thread_id(cl_thread)
 
-    if thread.id is None:
-        response_content = "The old thread could not be fetched."
-    else:
+    if oai_thread_id:
+        await retrieve_thread(oai_thread_id, client)
         response_content = "Welcome back! I'm ready to assist you. How can I help you today?"
-    cl.user_session.set("thread", thread)
+    else:
+        response_content = "The old thread could not be fetched."
 
-    await cl.Message(content=response_content).send()
+    return await cl.Message(content=response_content).send()
 
 
-async def try_step(step, client):
-    if step['type'] == 'run':
-        parsed_input = json.loads(step['input'])
-        kwargs = parsed_input.get('kwargs', {})
-        thread_id = kwargs.get('thread_id', None)
-        if thread_id is not None:
-            logger.info(f"Resuming chat with thread ID: {thread_id}")
-            try:
-                return await client.beta.threads.retrieve(thread_id)
-            except NotFoundError as e:
-                raise ValueError("Thread ID is no longer accessible.")
+def get_thread_id(cl_thread: ThreadDict) -> str:
+    """
+    Given the datalayer thread object, find the associated OIA Thread ID.
+    :param cl_thread:
+    :return: The OAI thread ID
+    """
+
+    steps = cl_thread.get('steps')
+    for step in steps:
+        if step['type'] == 'run':
+            parsed_input = json.loads(step['input'])
+            kwargs = parsed_input.get('kwargs', {})
+            thread_id = kwargs.get('thread_id', None)
+            if thread_id is None:
+                raise Exception("THREAD ID IS NONE")
+            return thread_id
+    raise Exception("THREAD ID NOT FOUND")
+
+
+async def retrieve_thread(thread_id, client) -> None:
+
+    if thread_id is not None:
+        logger.info(f"Resuming chat with thread ID: {thread_id}")
+        try:
+            thread = await client.beta.threads.retrieve(thread_id)
+            cl.user_session.set("thread", thread)
+        except NotFoundError as e:
+            logger.error(f"THREAD NOT FOUND: {e}")
+            raise ValueError("Thread ID is no longer accessible.")
