@@ -4,7 +4,6 @@ import unittest
 from unittest.mock import patch, AsyncMock, Mock
 
 import chainlit as cl
-import httpx
 from openai import NotFoundError
 
 from cl_events.on_chat_resume import on_chat_resume_logic
@@ -31,7 +30,7 @@ def test_on_chat_resume_logic(mock_client):
         ]
     }
 
-    # Run the function
+    # noinspection PyTypeChecker
     result = asyncio.run(on_chat_resume_logic(cl_thread, mock_client))
 
     # Check that the function called the retrieve method with the correct thread ID
@@ -45,10 +44,11 @@ def test_on_chat_resume_logic(mock_client):
     mock_response.status_code = 404
     mock_response.request = Mock()
     mock_response.request.url = "URL('https://api.openai.com/v1/threads/thread_id')"
-    args = ('Error code: 404 - {\'error\': {\'message\': "No thread found with id \'thread_id\'.", \'type\': '
-            '\'invalid_request_error\', \'param\': None, \'code\': None}}',)
+    args = str('Error code: 404 - {\'error\': {\'message\': "No thread found with id \'thread_id\'.", \'type\': '
+               '\'invalid_request_error\', \'param\': None, \'code\': None}}', )
     error = NotFoundError(response=mock_response, body='Error message here', message=args)
     mock_client.beta.threads.retrieve.side_effect = error
+    # noinspection PyTypeChecker
     asyncio.run(on_chat_resume_logic(cl_thread, mock_client))
 
 
