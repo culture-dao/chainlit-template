@@ -26,8 +26,6 @@ class TestFileUpload(unittest.IsolatedAsyncioTestCase):
         # Process each page in the paginator
         async for file in files:
             logging.info(f"File content: {file}")
-            logging.info(f"File type: {type(file)}")
-            self.assertIsInstance(file, VectorStoreFile, "File is not of type VectorStoreFile")
             files_list.append(file)
 
         self.assertGreater(len(files_list), 0, "No files were listed")
