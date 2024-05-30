@@ -3,13 +3,15 @@ AsyncAssistantEventHandler for Chainlit
 """
 
 import logging
+from typing import Dict
+
 import chainlit as cl
 from chainlit import Step
 from openai.lib.streaming import AsyncAssistantEventHandler
 from openai.types.beta.threads import Run, Text, Message, \
     TextContentBlock, ImageFileContentBlock
 from openai.types.beta.threads.runs import RunStep, \
-    ToolCallDelta, ToolCall
+    ToolCall
 from utils.annotations import OpenAIAdapter
 
 logging.basicConfig(level=logging.INFO)
@@ -41,9 +43,6 @@ class EventHandler(AsyncAssistantEventHandler):
             self.event_map[event_type] += 1
         else:
             self.event_map[event_type] = 1
-
-    # async def on_message_created(self, message: Message) -> None:
-    #     logging.debug(f'on_message_created: {message.id}')
 
     async def on_text_created(self, text: Text) -> None:
         logging.info('on_text_created')
@@ -82,7 +81,7 @@ class EventHandler(AsyncAssistantEventHandler):
                 print(delta.code_interpreter.input, end="", flush=True)
                 await self.message_references[snapshot.id].stream_token(delta.code_interpreter.input)
             if delta.code_interpreter.outputs:
-                print(f"\n\noutput >", flush=True)
+                print("\n\noutput >", flush=True)
                 for output in delta.code_interpreter.outputs:
                     if output.type == "logs":
                         print(f"\n{output.logs}", flush=True)
@@ -99,7 +98,6 @@ class EventHandler(AsyncAssistantEventHandler):
 
         if self.current_event.event == 'thread.run.requires_action':
             logger.info('----------------REQUIRED ACTION-------------------')
-            run_id = self.current_event.data.id  # Retrieve the run ID from the event data
             assistant = await self.client.beta.assistants.retrieve(self.current_event.data.assistant_id)
             async with assistant.llm.beta.threads.runs.submit_tool_outputs_stream(
                     thread_id=self.current_run.thread_id,
@@ -109,6 +107,7 @@ class EventHandler(AsyncAssistantEventHandler):
             ) as stream:
                 await stream.until_done()
 
+        # Check if this is a repeat and clear the step
         if (isinstance(self.current_event.data, Run)  # thread.run.completed
                 or self.current_event.data.type != 'tool_calls'):  # thread.run.step.completed
             await step.remove()
