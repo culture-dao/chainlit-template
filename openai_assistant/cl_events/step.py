@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from typing import List, Dict, Any
@@ -6,13 +7,18 @@ from typing import List, Dict, Any
 import chainlit as cl
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
-from openai.types.beta import FileSearchToolParam
+from openai._base_client import AsyncPaginator
+from openai.pagination import AsyncCursorPage
+from openai.types.beta import FileSearchToolParam, Thread
 from openai.types.beta.threads.message_create_params import Attachment
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
+from openai.types.beta.vector_stores import VectorStoreFile
 
 from utils.assistant_handler import assistant_handler
 from utils.event_handler import EventHandler
+
+logging.basicConfig(level=logging.INFO)
 
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
@@ -93,6 +99,23 @@ async def step_logic(
     await client.beta.threads.messages.create(
         thread_id=thread_id, role="user", content=human_query, attachments=attachments
     )
+
+    thread: Thread = await client.beta.threads.retrieve(thread_id)
+    if file_ids and len(thread.tool_resources.file_search.vector_store_ids) > 0:
+        files_list: List[VectorStoreFile] = []
+        files: AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]] = await client.beta.vector_stores.files.list(thread.tool_resources.file_search.vector_store_ids[0])
+
+        async for file in files:
+            logging.info(f"File content: {file}")
+            files_list.append(file)
+
+        latest_file: VectorStoreFile = max(files_list, key=lambda x: x.created_at)
+        logging.info(f"Latest file: {latest_file}")
+
+        if latest_file.last_error is not None:
+            logging.info("The last file upload failed!")
+            await cl.Message(content="There was an error with the file(s) you uploaded!").send()
+            return
 
     e = EventHandler(client=client)
 
