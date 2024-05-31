@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 from openai._types import FileTypes
 from openai.types import FileObject
 
+load_dotenv('../.env', override=True)
+
 from utils.files_handler import files_handler
 
-load_dotenv('../.env', override=True)
 TEST_FILE_ID = os.getenv('TEST_FILE_ID')
 
 
