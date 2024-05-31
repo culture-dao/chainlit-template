@@ -68,7 +68,7 @@ async def on_chat_resume_callback(thread: ThreadDict):
 
 
 @cl.step(name=ASSISTANT_NAME, type="run", root=True)
-async def run(thread_id: str, human_query: str, file_ids: List[str]):
+async def run(thread_id: str):
     return await step_logic(thread_id, client)
 
 
@@ -82,9 +82,7 @@ async def on_message(message_from_ui: cl.Message):
             thread_id=thread.id, role="user", content=message_from_ui.content, attachments=attachments
         )
         await validate_upload()
-        await run(
-            thread_id=thread.id, human_query=message_from_ui.content, attachments=attachments
-        )
+        await run(thread_id=thread.id)
     except BadRequestError as e:
         logger.error(e)
         # This exposes OAI to user, might want to throw a custom error here
