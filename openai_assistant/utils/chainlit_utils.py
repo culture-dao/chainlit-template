@@ -8,6 +8,7 @@ from chainlit.element import Element
 from openai import AsyncOpenAI
 from openai._base_client import AsyncPaginator
 from openai.pagination import AsyncCursorPage
+from openai.types import FileObject
 from openai.types.beta import Thread, FileSearchToolParam
 from openai.types.beta.threads.message import Attachment
 from openai.types.beta.vector_stores import VectorStoreFile
@@ -36,29 +37,31 @@ async def check_files(files: List[Element]):
 
 
 # Upload files to the assistant
-async def upload_files(files: List[Element]):
-
-    for file in files:
+async def upload_files(elements: List[Element]) -> List[FileObject] :
+    files: List[FileObject] = []
+    for element in elements:
         # TODO: Use batch polling here
-        await client.files.create(file=Path(file.path), purpose="assistants")  # Type: FileObject
+        file = await client.files.create(file=Path(element.path), purpose="assistants")  # Type: FileObject
+        files.append(file)
+    return files
 
 
-async def process_files(files: List[Element]) -> List[Attachment]:
+async def process_files(elements: List[Element]) -> List[Attachment]:
     attachments: List[Attachment] = []
-    if len(files) > 0:
-        attachments = []
-        for file in files:
-            logging.info(file)
-            attachments.append(Attachment(file_id=file.id, tools=[FileSearchToolParam(type='file_search')]))
-        files_ok = await check_files(files)
-
+    if len(elements) > 0:
+        files_ok = await check_files(elements)
         if not files_ok:
             file_error_msg = (f"Hey, it seems you have uploaded one or more files that we do not support currently, "
                               f"please upload only : {(',').join(allowed_mime)}")
             await cl.Message(content=file_error_msg).send()  # Why does this return as author: Chatbot?
             return attachments
 
-        await upload_files(files)
+        else:
+            files = await upload_files(elements)
+
+        for file in files:
+            logging.info(file)
+            attachments.append(Attachment(file_id=file.id, tools=[FileSearchToolParam(type='file_search')]))
 
     return attachments
 
