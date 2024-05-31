@@ -1,26 +1,17 @@
 import json
 import logging
-import os
 from datetime import datetime
 from typing import List, Dict, Any
 
 import chainlit as cl
-from dotenv import load_dotenv
 from openai import AsyncOpenAI
-from openai._base_client import AsyncPaginator
-from openai.pagination import AsyncCursorPage
-from openai.types.beta import FileSearchToolParam, Thread
 from openai.types.beta.threads.message_create_params import Attachment
 from openai.types.beta.threads.runs import RunStep
 from openai.types.beta.threads.runs.tool_calls_step_details import ToolCall
-from openai.types.beta.vector_stores import VectorStoreFile
 
-from utils.assistant_handler import assistant_handler
 from utils.event_handler import EventHandler
 
 logging.basicConfig(level=logging.INFO)
-
-ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
 
 # TODO: Migrate tool_call and DictToObject to event handler code
@@ -83,60 +74,22 @@ async def handle_tool_call(step_details, step_references, step, tool_outputs):
                 )
 
 
-async def validate_upload(thread: Thread, client: AsyncOpenAI):
-    if len(thread.tool_resources.file_search.vector_store_ids) > 0:
-        files_list: List[VectorStoreFile] = []
-        files: AsyncPaginator[
-            VectorStoreFile, AsyncCursorPage[VectorStoreFile]] = await client.beta.vector_stores.files.list(
-            thread.tool_resources.file_search.vector_store_ids[0])
-
-        async for file in files:
-            logging.info(f"File content: {file}")
-            files_list.append(file)
-
-        latest_file: VectorStoreFile = max(files_list, key=lambda x: x.created_at)
-        logging.info(f"Latest file: {latest_file}")
-
-        if latest_file.last_error is not None:
-            logging.info("The last file upload failed!")
-            raise RuntimeError("There was an error with the file(s) you uploaded!")
-
-
 async def step_logic(
         thread_id: str,
-        human_query: str,
-        file_ids: List[str],
         client: AsyncOpenAI
 ):
-    attachments: List[Attachment] | None = None
-    if file_ids:
-        attachments = []
-        for file in file_ids:
-            attachments.append(Attachment(file_id=file, tools=[FileSearchToolParam(type='file_search')]))
-
-    # Add the message to the thread
-    await client.beta.threads.messages.create(
-        thread_id=thread_id, role="user", content=human_query, attachments=attachments
-    )
-
-    thread: Thread = await client.beta.threads.retrieve(thread_id)
-    if file_ids:
-        await validate_upload(thread=thread, client=client)
 
     e = EventHandler(client=client)
 
-    assistant = assistant_handler.find_by_name(ASSISTANT_NAME)
-    assistant_id = assistant.id
+    assistant = cl.user_session.get("assistant")
 
-    if assistant_id is not None:
-        async with client.beta.threads.runs.stream(
-                thread_id=thread_id,
-                assistant_id=assistant_id,
-                event_handler=e,
-        ) as stream:
-            await stream.until_done()
-    else:
-        raise ValueError("Couldn't pull assistant id from .env")
+    # On chat start
+    async with client.beta.threads.runs.stream(
+            thread_id=thread_id,
+            assistant_id=assistant.id,
+            event_handler=e,
+    ) as stream:
+        await stream.until_done()
 
 
 async def process_tool_call(

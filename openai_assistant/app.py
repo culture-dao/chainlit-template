@@ -1,18 +1,20 @@
 import logging
 import os
 from typing import List
+import logging
 
 import chainlit as cl
 
 from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
+from openai.types.beta.threads.message import Attachment
 
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
 import cl_events.on_audio
-from utils.chainlit_utils import process_files
+from utils.chainlit_utils import process_files, validate_upload
 from utils.openai_utils import initialize_openai_client
 
 logging.basicConfig(level=logging.INFO)
@@ -67,16 +69,21 @@ async def on_chat_resume_callback(thread: ThreadDict):
 
 @cl.step(name=ASSISTANT_NAME, type="run", root=True)
 async def run(thread_id: str, human_query: str, file_ids: List[str]):
-    return await step_logic(thread_id, human_query, file_ids, client)
+    return await step_logic(thread_id, client)
 
 
 @cl.on_message
 async def on_message(message_from_ui: cl.Message):
     thread: Thread = cl.user_session.get("thread")
     try:
-        files_ids: List[str] = await process_files(message_from_ui.elements)
+        logging.info(message_from_ui)
+        attachments: List[Attachment] = await process_files(message_from_ui.elements)
+        await client.beta.threads.messages.create(
+            thread_id=thread.id, role="user", content=message_from_ui.content, attachments=attachments
+        )
+        await validate_upload()
         await run(
-            thread_id=thread.id, human_query=message_from_ui.content, file_ids=files_ids
+            thread_id=thread.id, human_query=message_from_ui.content, attachments=attachments
         )
     except BadRequestError as e:
         logger.error(e)
