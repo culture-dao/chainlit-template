@@ -7,13 +7,15 @@ from openai._types import FileTypes
 from openai.types import FileObject
 
 load_dotenv('../.env', override=True)
-
-from utils.files_handler import files_handler
-
+from utils.files_handler import files_handler  # noqa: E402
 TEST_FILE_ID = os.getenv('TEST_FILE_ID')
 
 
 class TestFilesHandler(unittest.IsolatedAsyncioTestCase):
+
+    async def test_init(self):
+        await files_handler.init()
+
 
     async def test_files_list(self):
         files: List[FileObject] = await files_handler._files_list()

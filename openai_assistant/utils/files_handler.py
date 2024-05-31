@@ -10,10 +10,9 @@ from openai.types import FileObject, FileDeleted
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
 
+logger = logging.getLogger("chainlit")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 logging.getLogger("httpx").setLevel("WARNING")
-
-logger = logging.getLogger("chainlit")
 
 CONFIG_PATH = 'files.yaml'
 

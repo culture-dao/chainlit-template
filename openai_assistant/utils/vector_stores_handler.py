@@ -9,11 +9,11 @@ from openai.types.beta import VectorStore
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
 
-VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
-
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 logging.getLogger("httpx").setLevel("WARNING")
+
+
+VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 
 
 class VectorStoresHandler(OpenAIHandler):
@@ -21,18 +21,18 @@ class VectorStoresHandler(OpenAIHandler):
         super().__init__(config_path, VectorStore)
 
     async def list(self):
-        return await self.vector_stores_list()
+        return await self._vector_stores_list()
 
     async def create(self, config):
-        return await self.vector_stores_create()
+        return await self._vector_stores_create()
 
     async def retrieve(self, vector_store_id):
-        return await self.vector_stores_retrieve(vector_store_id)
+        return await self._vector_stores_retrieve(vector_store_id)
 
     async def update(self, item_id, config=None):
-        return await self.vector_stores_update(item_id, config)
+        return await self._vector_stores_update(item_id, config)
 
-    async def vector_stores_list(self) -> List[VectorStore]:
+    async def _vector_stores_list(self) -> List[VectorStore]:
         """Lists all the vector_stores for a specific assistant"""
         try:
             vector_stores: AsyncCursorPage[VectorStore] = await self.client.beta.vector_stores.list()
@@ -42,21 +42,21 @@ class VectorStoresHandler(OpenAIHandler):
             logging.error(f"Failed to list vector_stores due to an error: {e}")
             raise Exception("vector_stores_list failed") from e
 
-    async def vector_stores_create(self, config=None) -> VectorStore:
+    async def _vector_stores_create(self, config=None) -> VectorStore:
         try:
             return await self.client.beta.vector_stores.create(**config)
         except Exception as e:
             logging.error(f"Failed to create vector_stores due to an error: {e}")
             raise Exception("vector_stores_create failed") from e
 
-    async def vector_stores_retrieve(self, vector_store_id: str) -> VectorStore:
+    async def _vector_stores_retrieve(self, vector_store_id: str) -> VectorStore:
         try:
             return await self.client.beta.vector_stores.retrieve(vector_store_id)
         except Exception as e:
             logging.error(f"Failed to retrieve vector_stores due to an error: {e}")
             raise Exception("vector_stores_retrieve failed") from e
 
-    async def vector_stores_update(self, vector_store_id: str, config):
+    async def _vector_stores_update(self, vector_store_id: str, config):
         try:
             return await self.client.beta.vector_stores.update(vector_store_id, **config)
         except Exception as e:
@@ -64,12 +64,15 @@ class VectorStoresHandler(OpenAIHandler):
             raise Exception("vector_stores_update failed") from e
 
 
-async def main():
-    vector_stores = await VectorStoresHandler(VECTOR_STORES_CONFIG_PATH, VectorStore).init()
-    default_store = vector_stores.find_by_name("Default Datastore")
-    if not default_store:
-        await vector_stores.create({'name': "Default Datastore"})
+vector_stores_handler: VectorStoresHandler = VectorStoresHandler(VECTOR_STORES_CONFIG_PATH)
 
+
+async def main() -> VectorStoresHandler:
+    await vector_stores_handler.init()
+    default_store = vector_stores_handler.find_by_name("Default Datastore")
+    if not default_store:
+        await vector_stores_handler.create({'name': "Default Datastore"})
+    return vector_stores_handler
 
 if __name__ == "__main__":
     asyncio.run(main())
