@@ -86,7 +86,7 @@ class OpenAIAdapter:
 
         for i, annotation in enumerate(self.annotations):
             # Construct the citation reference, e.g., "[1]"
-            citation_ref = f"[{len(self.annotations) - i}]"
+            citation_ref = f"$^{{{len(self.annotations) - i}}}$ "
 
             # Replace the citation text with the citation reference
             # Since we're working backward, we don't need to adjust the start and end indices)
