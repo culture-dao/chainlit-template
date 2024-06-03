@@ -3,7 +3,6 @@ import os
 from typing import List
 
 import chainlit as cl
-
 from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
@@ -11,7 +10,6 @@ from openai import BadRequestError
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
-import cl_events.on_audio
 from utils.chainlit_utils import process_files
 from utils.openai_utils import initialize_openai_client
 
@@ -23,7 +21,7 @@ logger = logging.getLogger("chainlit")
 
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
 
-cl_events.on_audio.init()
+# cl_events.on_audio.init()
 
 if not ASSISTANT_NAME:
     raise Exception("MISSING ASSISTANT NAME")
