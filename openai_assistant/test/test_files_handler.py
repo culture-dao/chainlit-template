@@ -16,7 +16,6 @@ class TestFilesHandler(unittest.IsolatedAsyncioTestCase):
     async def test_init(self):
         await files_handler.init()
 
-
     async def test_files_list(self):
         files: List[FileObject] = await files_handler._files_list()
         self.assertTrue(isinstance(files, Iterable), "ojb should be an iterable")

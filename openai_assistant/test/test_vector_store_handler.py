@@ -1,6 +1,7 @@
 import os
 import unittest
 from typing import List, Iterable
+from unittest.mock import Mock
 
 from dotenv import load_dotenv
 from openai.types.beta import VectorStore
@@ -14,6 +15,7 @@ class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.vector_id = TEST_VECTORSTORE_ID
         self.assistant_id = "fake_assistant_id"
+        self.file_handler = Mock()
         self.handler = vector_stores_handler
 
     @unittest.skip("Don't make stores if we aren't going to clean them up")
@@ -39,6 +41,10 @@ class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
         }
         result = await self.handler._vector_stores_update(self.vector_id, config)
         self.assertEqual(result.name, "Default Datastore")
+
+    async def test_vector_store_files(self):
+        result = self.handler.files
+        pass
 
 
 if __name__ == '__main__':
