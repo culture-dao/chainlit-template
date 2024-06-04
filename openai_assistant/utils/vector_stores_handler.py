@@ -5,6 +5,7 @@ from typing import List
 from openai import AsyncOpenAI
 from openai.pagination import AsyncCursorPage
 from openai.types.beta import VectorStore
+from openai.types.beta.vector_stores import VectorStoreFile
 
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
@@ -12,13 +13,13 @@ from utils.openai_utils import AsyncPaginatorHelper
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 logging.getLogger("httpx").setLevel("WARNING")
 
-
 VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 
 
 class VectorStoresHandler(OpenAIHandler):
-    def __init__(self, config_path: str, client: AsyncOpenAI = None):
+    def __init__(self, config_path: str):
         super().__init__(config_path, VectorStore)
+        self.files = dict[str, [VectorStoreFile]]
 
     async def list(self):
         return await self._vector_stores_list()
