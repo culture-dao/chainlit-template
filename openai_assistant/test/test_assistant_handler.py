@@ -5,23 +5,19 @@ from typing import Iterable, List
 import chainlit as cl
 from dotenv import load_dotenv
 from openai.types.beta import Assistant
-
-from utils.assistant_handler import AssistantHandler
 from utils.chainlit_utils import DictToObject
-from utils.openai_utils import initialize_openai_client
+
 
 load_dotenv('../.env', override=True)
-
+from utils.assistant_handler import assistant_handler  # noqa: E402
 TEST_ASSISTANT_ID = os.getenv('TEST_ASSISTANT_ID')
 ASSISTANT_NAME = os.getenv('ASSISTANT_NAME')
-
-client = initialize_openai_client()
 
 
 class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
-        self.handler = AssistantHandler('')
+        self.handler = assistant_handler
 
     async def test_assistant_retrieve_valid(self):
         result = await self.handler._assistant_retrieve(TEST_ASSISTANT_ID)
