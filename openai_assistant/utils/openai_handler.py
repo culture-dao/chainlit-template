@@ -58,7 +58,7 @@ class OpenAIHandler(ABC):
 
     def update_config(self):
         with open(self.config_path, 'w') as f:
-            _as_dicts = {remote.id: remote.dict() for remote in self.remotes}
+            _as_dicts = {remote.id: remote.model_dump() for remote in self.remotes}
             yaml.dump(_as_dicts, f)
 
     def find_by_name(self, name: str):
