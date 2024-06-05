@@ -7,7 +7,6 @@ We've had a lot of bugs with OpenAI's annotations, so we have to validate the in
 
 """
 from chainlit import Message
-from chainlit.element import Text
 from chainlit.logger import logger
 from openai.types import FileObject
 from openai.types.beta.threads import (
@@ -86,10 +85,10 @@ class OpenAIAdapter:
 
         for i, annotation in enumerate(self.annotations):
             # Construct the citation reference, e.g., "[1]"
-            citation_ref = f"$^{{{len(self.annotations) - i}}}$ "
+            citation_ref = f"[{len(self.annotations) - i}] "
 
             # Replace the citation text with the citation reference
-            # Since we're working backward, we don't need to adjust the start and end indices)
+            # Since we're working backward, we don't need to adjust the start and end indices
 
             value = (
                     value[: annotation.start_index]
@@ -97,22 +96,32 @@ class OpenAIAdapter:
                     + value[annotation.end_index:]
             )
 
+        # Add the footnotes
+        value += self.get_elements()
+
         return value
 
     def set_elements(self) -> None:
-        self.elements = [
-            (
-                f"[{i}] {citation.file_id}",
-                f"{citation.quote if citation.quote else ' '}",  # Can't be '' needs have the space
-            )
-            for i, citation in enumerate(self.citations, start=1)
-        ]
+        self.elements = []
+        for i, citation in enumerate(self.citations, start=1):
+            self.elements.append(f"{i} {citation.file_id}")
 
-    def get_elements(self) -> list[Text]:
-        cl_text: list[Text] = []
+    def get_elements(self) -> str:
+        current_message = self.message.content[0].text.value
+        citation_text = '\n'
+        last_source = ''
         for element in self.elements:
-            cl_text.append(Text(name=element[0], content=element[1], display="inline"))
-        return cl_text
+            index = element.split(' ')[0]
+            source = element.split(' ', 1)[1]
+
+            if last_source == source:
+                last_bracket_pos = current_message.rfind(']')
+                citation_text = current_message[:last_bracket_pos + 1] + ' ' + index + current_message[
+                                                                                         last_bracket_pos + 1:]
+            else:
+                citation_text += '\n' + f"*{element}*"
+                last_source = source
+        return citation_text
 
     def get_message(self) -> Message:
         return Message(content=self.get_content(), elements=self.get_elements())
@@ -122,8 +131,9 @@ class OpenAIAdapter:
             return
         if self.validate_indexes():
             await self.set_citations()
-            self.get_content()
             self.set_elements()
+            self.get_content()
+            self.get_elements()
         else:
             logger.error(f"Error validating message annotations index: {self._id}")
         return

@@ -145,24 +145,7 @@ async def process_thread_message(
         # Handle the annotations and get the updated content and elements
         adapter = OpenAIAdapter(thread_message)
         await adapter.main()
-        content = adapter.get_content()
-        elements = adapter.get_elements()
 
-        # Update the message content with the new text and elements
-        message.content = content + '\n'
-        last_source = ''
-        for element in elements:
-            logging.info(element)
-            index = element.name.split(' ')[0]
-            source = element.name.split(' ', 1)[1]
-
-            if last_source == source:
-                last_bracket_pos = message.content.rfind(']')
-                message.content = message.content[:last_bracket_pos + 1] + ' ' + index + message.content[
-                                                                                         last_bracket_pos + 1:]
-            else:
-                message.content += '\n' + f"*{element.name}*"
-                last_source = source
         await message.update()
     # Check if the message content is of type image file
     elif isinstance(content_message, ImageFileContentBlock):
