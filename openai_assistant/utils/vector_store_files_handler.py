@@ -4,6 +4,7 @@ from typing import List
 from openai.types.beta.vector_stores import VectorStoreFile, VectorStoreFileDeleted
 from overrides import override
 
+from utils.files_handler import files_handler
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
 
@@ -16,11 +17,13 @@ VECTOR_STORES_CONFIG_PATH = 'vector_store_files.yaml'
 class VectorStoreFilesHandler(OpenAIHandler):
     def __init__(self, config_path: str):
         super().__init__(config_path, VectorStoreFile)
+        self.file_handler = files_handler
 
     async def handle_empty_objects_and_remotes(self):
         # We don't need to create a new default here
         pass
 
+    @override()
     async def list(self, vector_store_id=None, *args, **kwargs) -> List[VectorStoreFile]:
         if vector_store_id:
             vector_store_files = self.client.beta.vector_stores.files.list(
@@ -30,7 +33,7 @@ class VectorStoreFilesHandler(OpenAIHandler):
         else:
             return []
 
-    @override
+    @override()
     async def create(self, config, *args, **kwargs) -> VectorStoreFile:
         vector_store_id = config.get('vector_store_id')
         file_id = config.get('file_id')
@@ -65,6 +68,9 @@ class VectorStoreFilesHandler(OpenAIHandler):
             **kwargs
         )
         return deleted_vector_store_file
+
+    async def resolve_files(self, file_id):
+        return await self.client.files.retrieve(file_id)
 
 
 vector_store_files_handler: VectorStoreFilesHandler = VectorStoreFilesHandler(VECTOR_STORES_CONFIG_PATH)

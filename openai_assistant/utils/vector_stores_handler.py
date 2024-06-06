@@ -9,6 +9,7 @@ from openai.types.beta.vector_stores import VectorStoreFile
 
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
+from utils.vector_store_files_handler import vector_store_files_handler
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 logging.getLogger("httpx").setLevel("WARNING")
@@ -19,6 +20,7 @@ VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 class VectorStoresHandler(OpenAIHandler):
     def __init__(self, config_path: str):
         super().__init__(config_path, VectorStore)
+        self.files_handler = vector_store_files_handler
         self.files = dict[str, [VectorStoreFile]]
 
     async def list(self):
@@ -32,6 +34,22 @@ class VectorStoresHandler(OpenAIHandler):
 
     async def update(self, item_id, config=None):
         return await self._vector_stores_update(item_id, config)
+
+    async def retrieve_files(self, vector_store_id):
+        try:
+            vsf = self.client.beta.vector_stores.files.list(vector_store_id)
+            return await AsyncPaginatorHelper.collect_all_items(vsf)
+        except Exception as e:
+            logging.error(f"Failed to list vector store files due to an error: {e}")
+            raise Exception("vector_stores.files.list failed") from e
+
+    async def resolve_files(self, vector_store_ids):
+        all_files = {}
+        for vs_id in vector_store_ids:
+            vector_store_files = self.retrieve_files(vs_id)
+            files = await self.files_handler.resolve_files(vector_store_files)
+            all_files.update(files)
+        return all_files
 
     async def _vector_stores_list(self) -> List[VectorStore]:
         """Lists all the vector_stores for a specific assistant"""

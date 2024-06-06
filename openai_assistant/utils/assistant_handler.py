@@ -41,15 +41,12 @@ class AssistantHandler(OpenAIHandler):
 
         attached_files = []
         for vector_store_id in vector_store_ids:
-            vector_store = await self.vector_store_handler.retrieve(vector_store_id)
-
-            vector_store_files = vector_store.files
+            vector_store_files = await self.vector_store_handler.retrieve_files(vector_store_id)
             for vsf in vector_store_files:
-                file = await self.file_handler.retrieve(vsf.file_id)
+                file = await self.file_handler.retrieve(vsf.id)
                 attached_files.append(file)
 
         return attached_files
-
 
     async def _assistants_list(self) -> List[Assistant]:
         try:
