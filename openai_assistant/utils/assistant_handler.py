@@ -1,9 +1,9 @@
 import asyncio
 import logging
-from typing import List, Iterable
-
+from typing import List, Iterable, Dict
 
 from openai.pagination import AsyncCursorPage
+from openai.types import FileObject
 from openai.types.beta import Assistant, AssistantToolParam, FileSearchToolParam
 from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
@@ -35,7 +35,12 @@ class AssistantHandler(OpenAIHandler):
     async def update(self, item_id):
         pass
 
-    async def load_files(self, assistant_id):
+    async def load_files(self, assistant_id) -> Dict[str, FileObject]:
+        """
+        Creates a file map of the assistant's associated vector stores.
+        :param assistant_id:
+        :return:
+        """
         assistant = await self.retrieve(assistant_id)
         vector_store_ids = assistant.tool_resources.file_search.vector_store_ids
 
