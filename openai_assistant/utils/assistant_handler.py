@@ -7,8 +7,10 @@ from openai.pagination import AsyncCursorPage
 from openai.types.beta import Assistant, AssistantToolParam, FileSearchToolParam
 from openai.types.beta.assistant_update_params import ToolResourcesFileSearch, AssistantUpdateParams, ToolResources
 
+from utils.files_handler import files_handler
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
+from utils.vector_stores_handler import vector_stores_handler
 
 logger = logging.getLogger("chainlit")
 
@@ -18,6 +20,8 @@ ASSISTANT_CONFIG_PATH = 'assistant.yaml'
 class AssistantHandler(OpenAIHandler):
     def __init__(self, config_path: str):
         super().__init__(config_path, Assistant)
+        self.file_handler = files_handler
+        self.vector_store_handler = vector_stores_handler
 
     async def list(self):
         return await self._assistants_list()
@@ -30,6 +34,22 @@ class AssistantHandler(OpenAIHandler):
 
     async def update(self, item_id):
         pass
+
+    async def load_files(self, assistant_id):
+        assistant = await self.retrieve(assistant_id)
+        vector_store_ids = assistant.tool_resources.file_search.vector_store_ids
+
+        attached_files = []
+        for vector_store_id in vector_store_ids:
+            vector_store = await self.vector_store_handler.retrieve(vector_store_id)
+
+            vector_store_files = vector_store.files
+            for vsf in vector_store_files:
+                file = await self.file_handler.retrieve(vsf.file_id)
+                attached_files.append(file)
+
+        return attached_files
+
 
     async def _assistants_list(self) -> List[Assistant]:
         try:

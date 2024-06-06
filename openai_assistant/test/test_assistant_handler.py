@@ -23,6 +23,10 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
         result = await self.handler._assistant_retrieve(TEST_ASSISTANT_ID)
         assert result
 
+    async def test_assistant_load_files(self):
+        assistant = await self.handler.retrieve(TEST_ASSISTANT_ID)
+        files = await self.handler.load_files(assistant.id)
+
     async def test_assistant_retrieve_invalid(self):
         with self.assertRaises(Exception):
             await self.handler._assistant_retrieve("nonsense")
