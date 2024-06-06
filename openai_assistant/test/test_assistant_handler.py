@@ -5,6 +5,7 @@ from typing import Iterable, List
 
 import chainlit as cl
 from dotenv import load_dotenv
+from openai.types import FileObject
 from openai.types.beta import Assistant
 from openai.types.beta.vector_stores import VectorStoreFile
 
@@ -24,7 +25,7 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
     @patch('utils.assistant_handler.assistant_handler.retrieve', new_callable=AsyncMock)
     @patch('utils.vector_stores_handler.vector_stores_handler.retrieve_files', new_callable=AsyncMock)
     @patch('utils.files_handler.files_handler.retrieve', new_callable=AsyncMock)
-    async def test_load_files(self, mock_retrieve_file, mock_retrieve_vector_store_files, mock_retrieve_assistant):
+    async def test_load_files_mocked(self, mock_retrieve_file, mock_retrieve_vector_store_files, mock_retrieve_assistant):
         # Mock the assistant retrieval
         mock_retrieve_assistant.return_value = mock_assistant
 
@@ -52,13 +53,13 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(files[0]['filename'], 'file1.pdf')
         self.assertEqual(files[1]['filename'], 'file2.pdf')
 
+    async def test_load_files_integration(self):
+        files = await self.handler.load_files(TEST_ASSISTANT_ID)
+        self.assertIsInstance(files[0], FileObject)
+
     async def test_assistant_retrieve_valid(self):
         result = await self.handler._assistant_retrieve(TEST_ASSISTANT_ID)
         assert result
-
-    async def test_assistant_load_files(self):
-        assistant = await self.handler.retrieve(TEST_ASSISTANT_ID)
-        files = await self.handler.load_files(assistant.id)
 
     async def test_assistant_retrieve_invalid(self):
         with self.assertRaises(Exception):
