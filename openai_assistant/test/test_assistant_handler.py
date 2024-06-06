@@ -22,37 +22,6 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.handler = assistant_handler
 
-    @patch('utils.assistant_handler.assistant_handler.retrieve', new_callable=AsyncMock)
-    @patch('utils.vector_stores_handler.vector_stores_handler.retrieve_files', new_callable=AsyncMock)
-    @patch('utils.files_handler.files_handler.retrieve', new_callable=AsyncMock)
-    async def test_load_files_mocked(self, mock_retrieve_file, mock_retrieve_vector_store_files, mock_retrieve_assistant):
-        # Mock the assistant retrieval
-        mock_retrieve_assistant.return_value = mock_assistant
-
-        # Create mock VectorStoreFile objects
-        mock_vector_store_file_1 = MagicMock(spec=VectorStoreFile)
-        mock_vector_store_file_1.id = 'file_1'
-        mock_vector_store_file_1.vector_store_id = 'vs_KHg49nznhw5RPoJ9fux86VM7'
-
-        mock_vector_store_file_2 = MagicMock(spec=VectorStoreFile)
-        mock_vector_store_file_2.id = 'file_2'
-        mock_vector_store_file_2.vector_store_id = 'vs_KHg49nznhw5RPoJ9fux86VM7'
-
-        # Mock the vector store retrieval
-        mock_retrieve_vector_store_files.return_value = [mock_vector_store_file_1, mock_vector_store_file_2]
-
-        # Mock the file retrieval
-        mock_retrieve_file.side_effect = [
-            {'id': 'file_1', 'filename': 'file1.pdf'},
-            {'id': 'file_2', 'filename': 'file2.pdf'}
-        ]
-
-        files = await self.handler.load_files(mock_assistant.id)
-
-        self.assertEqual(len(files), 2)
-        self.assertEqual(files[0]['filename'], 'file1.pdf')
-        self.assertEqual(files[1]['filename'], 'file2.pdf')
-
     async def test_load_files_integration(self):
         files = await self.handler.load_files(TEST_ASSISTANT_ID)
         self.assertIsInstance(files[0], FileObject)

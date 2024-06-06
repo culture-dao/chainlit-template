@@ -1,12 +1,14 @@
 import asyncio
 import logging
-from typing import List
+from typing import List, Dict
 
 from openai import AsyncOpenAI
 from openai.pagination import AsyncCursorPage
+from openai.types import FileObject
 from openai.types.beta import VectorStore
 from openai.types.beta.vector_stores import VectorStoreFile
 
+from utils.files_handler import files_handler
 from utils.openai_handler import OpenAIHandler
 from utils.openai_utils import AsyncPaginatorHelper
 from utils.vector_store_files_handler import vector_store_files_handler
@@ -20,7 +22,7 @@ VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 class VectorStoresHandler(OpenAIHandler):
     def __init__(self, config_path: str):
         super().__init__(config_path, VectorStore)
-        self.files_handler = vector_store_files_handler
+        self.files_handler = files_handler
         self.files = dict[str, [VectorStoreFile]]
 
     async def list(self):
@@ -35,7 +37,12 @@ class VectorStoresHandler(OpenAIHandler):
     async def update(self, item_id, config=None):
         return await self._vector_stores_update(item_id, config)
 
-    async def retrieve_files(self, vector_store_id):
+    async def retrieve_files(self, vector_store_id: str) -> [VectorStoreFile]:
+        """
+        Gets the vector store files for a particular vector store
+        :param vector_store_id:
+        :return: list of VectorStoreFile
+        """
         try:
             vsf = self.client.beta.vector_stores.files.list(vector_store_id)
             return await AsyncPaginatorHelper.collect_all_items(vsf)
@@ -43,12 +50,18 @@ class VectorStoresHandler(OpenAIHandler):
             logging.error(f"Failed to list vector store files due to an error: {e}")
             raise Exception("vector_stores.files.list failed") from e
 
-    async def resolve_files(self, vector_store_ids):
+    async def resolve_files(self, vector_store_ids: List[str]) -> Dict[str, FileObject]:
+        """
+        Retrieves vector store files, gets the associated file and returns a map using the ID as key.
+        :param vector_store_ids: list of vector stores
+        :return: a map of file objects, using the ID as key
+        """
         all_files = {}
         for vs_id in vector_store_ids:
-            vector_store_files = self.retrieve_files(vs_id)
-            files = await self.files_handler.resolve_files(vector_store_files)
-            all_files.update(files)
+            vector_store_files: [VectorStoreFile] = await self.retrieve_files(vs_id)
+            for vsf in vector_store_files:
+                file: FileObject = await self.files_handler.retrieve(vsf.id)
+                all_files[file.id] = file
         return all_files
 
     async def _vector_stores_list(self) -> List[VectorStore]:
