@@ -25,7 +25,6 @@ class AsyncPaginatorHelper(Generic[T]):
     async def collect_all_items(paginator: AsyncPage[T]) -> List[T]:
         items = []
         async for item in paginator:
-            logging.info(item)
             items.append(item)
         return items
 

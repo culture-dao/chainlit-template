@@ -7,9 +7,7 @@ import chainlit as cl
 from dotenv import load_dotenv
 from openai.types import FileObject
 from openai.types.beta import Assistant
-from openai.types.beta.vector_stores import VectorStoreFile
 
-from test.fixtures.assistant import mock_assistant
 from utils.chainlit_utils import DictToObject
 
 load_dotenv('../.env', override=True)
@@ -24,7 +22,7 @@ class TestAssistantHandler(unittest.IsolatedAsyncioTestCase):
 
     async def test_load_files_integration(self):
         files = await self.handler.load_files(TEST_ASSISTANT_ID)
-        self.assertIsInstance(files[0], FileObject)
+        assert all(isinstance(file, FileObject) for file in files.values())
 
     async def test_assistant_retrieve_valid(self):
         result = await self.handler._assistant_retrieve(TEST_ASSISTANT_ID)
