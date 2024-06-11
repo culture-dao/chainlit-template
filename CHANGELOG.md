@@ -5,17 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.4 build 327] - 2021-06-11
 
 ### Added
+- Speech to text integrations
 ### Fixed
+- Bumped CL to rc4 to fix Literal SDK issue
+- Handle unavailable threads on chat resume
 ### Changed
-### Removed
-
-## [0.4.4 build 287 ] 2024-05-28
-
-### Added
-- 
+- Citations now return as simple markdown
 
 ## [0.4.3 build 259] - 2024-05-21
 

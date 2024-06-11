@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chainlit-template"
-version = "0.4.3"
+version = "0.4.4"
 description = ""
 authors = ["BCM <dahifi@gmail.com>"]
 readme = "README.md"

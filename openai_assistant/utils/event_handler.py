@@ -145,12 +145,11 @@ async def process_thread_message(
         # Handle the annotations and get the updated content and elements
         adapter = OpenAIAdapter(thread_message)
         await adapter.main()
-        content = adapter.get_content()
-        elements = adapter.get_elements()
 
-        # Update the message content with the new text and elements
+        # Get and send the adapted content
+        content = adapter.get_content()
         message.content = content
-        message.elements = elements
+
         await message.update()
     # Check if the message content is of type image file
     elif isinstance(content_message, ImageFileContentBlock):

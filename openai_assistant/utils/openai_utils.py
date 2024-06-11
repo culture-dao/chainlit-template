@@ -53,7 +53,7 @@ def initialize_openai_client() -> AsyncOpenAI:
         raise
 
 
-client = initialize_openai_client()
+# client = initialize_openai_client()
 
 
 def get_playground_url(assistant_id, thread_id) -> None:
