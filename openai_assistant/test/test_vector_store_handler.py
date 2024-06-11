@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 from dotenv import load_dotenv
 from openai.types.beta import VectorStore
+from openai.types.beta.vector_stores import VectorStoreFile
 
 load_dotenv('../.env', override=True)
 from utils.vector_stores_handler import vector_stores_handler  # noqa: E402
@@ -42,9 +43,11 @@ class TestVectorStoresHandler(unittest.IsolatedAsyncioTestCase):
         result = await self.handler._vector_stores_update(self.vector_id, config)
         self.assertEqual(result.name, "Default Datastore")
 
-    async def test_vector_store_files(self):
-        result = self.handler.files
-        pass
+    async def test_vector_store_files_integration(self):
+        # Should be a dict of all files associated with any vector stores
+        result = await self.handler.vector_files
+        self.assertIsInstance(result, list)
+        self.assertTrue(all(isinstance(item, VectorStoreFile) for item in result))
 
 
 if __name__ == '__main__':

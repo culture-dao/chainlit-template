@@ -22,8 +22,8 @@ VECTOR_STORES_CONFIG_PATH = 'vector_stores.yaml'
 class VectorStoresHandler(OpenAIHandler):
     def __init__(self, config_path: str):
         super().__init__(config_path, VectorStore)
-        self.files_handler = files_handler
-        self.files = dict[str, [VectorStoreFile]]
+        self._vector_files = None
+        self.files_handler = files_handler  # VSF Handler
 
     async def list(self):
         return await self._vector_stores_list()
@@ -63,6 +63,15 @@ class VectorStoresHandler(OpenAIHandler):
                 file: FileObject = await self.files_handler.retrieve(vsf.id)
                 all_files[file.id] = file
         return all_files
+
+    @property
+    async def vector_files(self):
+        if not self._vector_files:  # If files are not loaded yet
+            self._vector_files = []
+            for vs in await self._vector_stores_list():
+                files: [VectorStoreFile] = await self.retrieve_files(vs.id)
+                self._vector_files.extend(files)
+        return self._vector_files
 
     async def _vector_stores_list(self) -> List[VectorStore]:
         """Lists all the vector_stores for a specific assistant"""
