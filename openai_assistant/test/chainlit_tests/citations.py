@@ -37,8 +37,6 @@ async def on_chat_start():
         content = adapter.get_content()
         await cl.Message(content=content).send()
 
-
-
 if __name__ == "__main__":
     from chainlit.cli import run_chainlit
 

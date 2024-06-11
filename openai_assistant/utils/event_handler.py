@@ -146,6 +146,10 @@ async def process_thread_message(
         adapter = OpenAIAdapter(thread_message)
         await adapter.main()
 
+        # Get and send the adapted content
+        content = adapter.get_content()
+        message.content = content
+
         await message.update()
     # Check if the message content is of type image file
     elif isinstance(content_message, ImageFileContentBlock):
