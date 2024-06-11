@@ -16,8 +16,8 @@ This is a fork of the chainlit-cookbook example. We have addded some annotation 
 To get started with the OpenAI Assistant API with Chainlit, follow these steps:
 
 1. Clone the repository and navigate to the `openai-assistant` directory.
-2. Install the required dependencies using `pip install -r requirements.txt`.
-3. Set up your environment variables by creating a `.env` file with your `OPENAI_API_KEY` and `ASSISTANT_ID`.
+2. Install the required dependencies using `poetry install`.
+3. Set up your environment variables by cloning `.env.sample` file as your `.env`.
 4. ~~~Run the `create_assistant.py` script to create an assistant instance.~~~ Create Assistant has not been updated for the V2 endpoint, so you best create one manually and load the ID into your env. 
 5. Start the Chainlit app by running `app.py`.
 
