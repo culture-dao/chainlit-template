@@ -6,6 +6,7 @@ We check for file annotation, and do some modification to the content to format 
 We've had a lot of bugs with OpenAI's annotations, so we have to validate the indexes to make sure we don't do substitutions on the wrong indexes, or have missing annotations.
 
 """
+
 from chainlit import Message
 from chainlit.element import Text
 from chainlit.logger import logger
@@ -36,6 +37,7 @@ class OpenAIAdapter:
         )
         self.citations: list[TextAnnotationFileCitationFileCitation] = []
         self.elements: list[(str, str)] = []
+        self.files_cache: dict = {}
 
     def has_annotations(self) -> bool:
         return bool(self.annotations)
@@ -56,9 +58,13 @@ class OpenAIAdapter:
         for annotation in self.annotations:
             citation = annotation.file_citation
             try:
-                retrieved_file: FileObject = await self.client.files.retrieve(
-                    annotation.file_citation.file_id
-                )
+                if citation.file_id in self.files_cache:
+                    retrieved_file: FileObject = self.files_cache[citation.file_id]
+                else:
+                    retrieved_file: FileObject = await self.client.files.retrieve(
+                        citation.file_id
+                    )
+                    self.files_cache[citation.file_id] = retrieved_file
                 filename = retrieved_file.filename
                 if ".pdf" in filename:
                     filename = filename[:-4]
