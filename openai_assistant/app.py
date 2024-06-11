@@ -3,15 +3,14 @@ import os
 from typing import List
 
 import chainlit as cl
-
 from chainlit.types import ThreadDict
 from literalai import Thread
 from openai import BadRequestError
 
+import cl_events.on_audio
 from cl_events.on_chat_resume import on_chat_resume_logic
 from cl_events.on_chat_start import on_start_chat_logic
 from cl_events.step import step_logic
-import cl_events.on_audio
 from utils.chainlit_utils import process_files
 from utils.openai_utils import initialize_openai_client
 
@@ -65,7 +64,7 @@ async def on_chat_resume_callback(thread: ThreadDict):
     return await on_chat_resume_logic(thread, client)
 
 
-@cl.step(name=ASSISTANT_NAME, type="run", root=True)
+@cl.step(name=ASSISTANT_NAME, type="run")
 async def run(thread_id: str, human_query: str, file_ids: List[str]):
     return await step_logic(thread_id, human_query, file_ids, client)
 
