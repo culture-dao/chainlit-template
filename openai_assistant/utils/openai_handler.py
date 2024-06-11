@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import TypeVar, Type
 
 import yaml
+from openai.types.beta import VectorStore
 
 from utils.openai_utils import load_yaml, list_to_dict, client
 
@@ -23,8 +24,8 @@ class OpenAIHandler(ABC):
 
     async def init(self):
         # Load config, load remotes
-        self.objects = await self.load_config()
         self.remotes = await self.list()
+        self.objects = await self.load_config()
         await self.handle_empty_objects_and_remotes()
         # Make sure our remote objects get written back to file
         await self.sync_with_remote()
@@ -47,9 +48,8 @@ class OpenAIHandler(ABC):
             self.objects = list_to_dict(self.remotes)
 
     async def sync_with_remote(self):
-
         for remote_object in self.remotes:
-            local_object = self.objects.get(remote_object.id)
+            local_object: VectorStore = self.objects.get(remote_object.id)
 
             if not local_object or local_object != remote_object:
                 self.objects[remote_object.id] = remote_object

@@ -37,6 +37,22 @@ class VectorStoresHandler(OpenAIHandler):
     async def update(self, item_id, config=None):
         return await self._vector_stores_update(item_id, config)
 
+    async def delete(self, vector_store_id) -> bool:
+        result = await self.client.beta.vector_stores.delete(vector_store_id)
+        return result.deleted
+
+    async def delete_empty(self):
+        logging.info('Starting Empty Vector Store Purge')
+        empty_vector_store_ids = [vs.id for vs in self.remotes if vs.file_counts.total == 0]
+
+        delete_tasks = [self.delete(vs_id) for vs_id in empty_vector_store_ids]
+        logging.info(f"Empty Stores:\n{delete_tasks}")
+
+        delete_results = await asyncio.gather(*delete_tasks)
+
+        self.remotes = [vs for vs in self.remotes if
+                    vs.id not in empty_vector_store_ids or not delete_results[empty_vector_store_ids.index(vs.id)]]
+
     async def retrieve_files(self, vector_store_id: str) -> [VectorStoreFile]:
         """
         Gets the vector store files for a particular vector store
@@ -69,6 +85,8 @@ class VectorStoresHandler(OpenAIHandler):
         if not self._vector_files:  # If files are not loaded yet
             self._vector_files = []
             for vs in await self._vector_stores_list():
+                if vs.file_counts.total == 0:  # there are no files
+                    continue
                 files: [VectorStoreFile] = await self.retrieve_files(vs.id)
                 self._vector_files.extend(files)
         return self._vector_files
@@ -110,6 +128,7 @@ vector_stores_handler: VectorStoresHandler = VectorStoresHandler(VECTOR_STORES_C
 
 async def main() -> VectorStoresHandler:
     await vector_stores_handler.init()
+    await vector_stores_handler.delete_empty()
     default_store = vector_stores_handler.find_by_name("Default Datastore")
     if not default_store:
         await vector_stores_handler.create({'name': "Default Datastore"})
