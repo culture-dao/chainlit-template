@@ -6,6 +6,7 @@ We check for file annotation, and do some modification to the content to format 
 We've had a lot of bugs with OpenAI's annotations, so we have to validate the indexes to make sure we don't do substitutions on the wrong indexes, or have missing annotations.
 
 """
+
 from chainlit import Message
 from chainlit.logger import logger
 from openai.types import FileObject
@@ -114,12 +115,16 @@ class OpenAIAdapter:
             index = element.split(' ')[0]
             source = element.split(' ', 1)[1]
 
+            # If the source we just used is the same as the source we are finding now
             if last_source == source:
-                last_bracket_pos = current_message.rfind(']')
-                citation_text = current_message[:last_bracket_pos + 1] + ' ' + index + current_message[
+                # Find the citation we just made
+                last_bracket_pos = citation_text.rfind(']')
+                # Add our citation. Ex: [1][2] filename
+                citation_text = citation_text[:last_bracket_pos + 1] + ' ' + '[' + index + ']' + citation_text[
                                                                                          last_bracket_pos + 1:]
             else:
-                citation_text += '\n' + f"*{element}*"
+                # For new citations, just add the citation. Ex: [1] filename
+                citation_text += '\n' + f"*[{index}] {source}*"
                 last_source = source
         return citation_text
 
