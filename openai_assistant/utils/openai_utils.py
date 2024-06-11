@@ -8,7 +8,7 @@ import httpx
 import openai
 import yaml
 from chainlit.logger import logger
-from openai import AsyncOpenAI, DefaultHttpxClient
+from openai import AsyncOpenAI, DefaultHttpxClient, DefaultAsyncHttpxClient
 from openai.pagination import AsyncPage
 from openai.types.beta import Thread
 from pydantic import BaseModel
@@ -18,10 +18,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 T = TypeVar('T')
 
 
-class CustomHttpxClient(httpx.AsyncClient):
+class CustomHttpxClient(DefaultAsyncHttpxClient):
     def __init__(self, **kwargs):
-        kwargs.setdefault("timeout", httpx.Timeout(10.0, read=5.0, write=5.0))
-        kwargs.setdefault("limits", httpx.Limits(max_keepalive_connections=10, max_connections=100))
+        # kwargs.setdefault("timeout", httpx.Timeout(10.0, read=5.0, write=5.0))
+        # kwargs.setdefault("limits", httpx.Limits(max_keepalive_connections=10, max_connections=100))
         super().__init__(**kwargs)
 
         # Add retry logic to the transport
