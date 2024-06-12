@@ -1,7 +1,6 @@
 import unittest
 
 from cl_events.on_chat_resume import get_thread_id
-from utils.openai_utils import initialize_openai_client
 
 step_without_id = {
     "createdAt": "2024-03-28T16:22:22.629Z",

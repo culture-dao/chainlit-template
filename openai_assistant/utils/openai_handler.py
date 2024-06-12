@@ -5,14 +5,14 @@ from typing import TypeVar, Type
 import yaml
 from openai.types.beta import VectorStore
 
-from utils.openai_utils import load_yaml, list_to_dict, client
+from utils.openai_utils import load_yaml, list_to_dict, initialize_openai_client
 
 T = TypeVar('T')
 
 
 class OpenAIHandler(ABC):
     def __init__(self, config_path: str, item_type: Type[T]):
-        self.client = client
+        self.client = initialize_openai_client()
 
         # Get the directory of the current script file
         current_dir = Path(__file__).resolve().parent
