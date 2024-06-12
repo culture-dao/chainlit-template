@@ -4,10 +4,11 @@ import logging
 import os
 from typing import TypeVar, Generic, List, Dict, Any, Type
 
+import httpx
 import openai
 import yaml
 from chainlit.logger import logger
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, DefaultHttpxClient, DefaultAsyncHttpxClient
 from openai.pagination import AsyncPage
 from openai.types.beta import Thread
 from pydantic import BaseModel
@@ -15,6 +16,17 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s\n')
 
 T = TypeVar('T')
+
+
+class CustomHttpxClient(DefaultAsyncHttpxClient):
+    def __init__(self, **kwargs):
+        # kwargs.setdefault("timeout", httpx.Timeout(10.0, read=5.0, write=5.0))
+        # kwargs.setdefault("limits", httpx.Limits(max_keepalive_connections=10, max_connections=100))
+        super().__init__(**kwargs)
+
+        # Add retry logic to the transport
+        transport = httpx.AsyncHTTPTransport(retries=10)
+        self._transport = transport
 
 
 class AsyncPaginatorHelper(Generic[T]):
@@ -45,9 +57,9 @@ def initialize_openai_client() -> AsyncOpenAI:
     if not openai.api_key:
         logger.error("OpenAI API key not found. Please check your environment variables.")
         raise ValueError("OpenAI API key not found")
-
     try:
-        return openai.AsyncOpenAI()
+        http_client = CustomHttpxClient()
+        return openai.AsyncOpenAI(http_client=http_client)
     except Exception as e:
         logger.error(f"Failed to initialize OpenAI client: {e}")
         raise
