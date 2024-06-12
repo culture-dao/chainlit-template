@@ -12,15 +12,15 @@ client = initialize_openai_client()
 
 @cl.on_chat_start
 async def on_chat_start():
-    messages = await get_thread_messages(client, 'thread_J05pHO7SIE0HWqQZJymAdo8Q')
+    messages = await get_thread_messages(client, 'thread_pyYV3psCkuoIr3VylFoa0uQ4')
     logger.info(messages.data)
     for thread_message in messages.data:
-        message = OpenAIAdapter(thread_message)
-        await message.set_citations()
-        cl_message = message.get_message()
-
-        logger.info(cl_message.elements)
-        await cl_message.send()
+        # Adapt the message using OpenAIAdapter
+        adapter = OpenAIAdapter(thread_message)
+        await adapter.main()
+        # Get and send the adapted content
+        content = adapter.get_content()
+        await cl.Message(content=content).send()
 
 
 if __name__ == "__main__":
