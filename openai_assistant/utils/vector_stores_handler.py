@@ -29,7 +29,7 @@ class VectorStoresHandler(OpenAIHandler):
         return await self._vector_stores_list()
 
     async def create(self, config):
-        return await self._vector_stores_create()
+        return await self._vector_stores_create(config)
 
     async def retrieve(self, vector_store_id):
         return await self._vector_stores_retrieve(vector_store_id)

@@ -62,7 +62,7 @@ class OpenAIHandler(ABC):
             yaml.dump(_as_dicts, f)
 
     def find_by_name(self, name: str):
-        return [obj for obj in self.objects if getattr(obj, 'name', None) == name]
+        return [obj for obj in self.remotes if getattr(obj, 'name', None) == name]
 
     def find_by_id(self, obj_id: str):
         return self.objects[obj_id]
