@@ -26,6 +26,7 @@ class TestFilesHandler(unittest.IsolatedAsyncioTestCase):
         result = await files_handler._files_retrieve(TEST_FILE_ID)
         self.assertTrue(isinstance(result, FileObject), "ojb should be an FileObject")
 
+    @unittest.skip('Side effects')
     async def test_file_create(self):
 
         file_name = 'test/dummy_file.txt'
