@@ -88,3 +88,8 @@ class NewTestAnnotations(unittest.IsolatedAsyncioTestCase):
 
         result = OpenAIAdapter(message_with_citation).has_annotations()
         self.assertTrue(result)
+
+    async def test_cache(self):
+        adapter = OpenAIAdapter(message_with_citation)
+        await adapter.main()
+        self.assertIn("file-A8iZLTqbU5cxrNOWfe4gd404", adapter.files_cache)
