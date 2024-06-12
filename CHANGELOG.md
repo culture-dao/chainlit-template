@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.4.5 build 343 ] 2024-06-12
+
+### Added
+- Vector store handler
+- List all files in any vector store
+- Remove all empty vector stores
+- Assistant handler lists attached files
+### Fixed
+### Changed
+### Removed
+
 ## [0.4.4 build 287 ] 2024-05-28
 
 ### Added
