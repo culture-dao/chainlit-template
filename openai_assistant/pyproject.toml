@@ -12,6 +12,7 @@ chainlit = { version = "^1.1.300rc4", allow-prereleases = true }
 openai = "^1.23.3"
 mailchimp-marketing = "^3.0.80"
 pyyaml = "^6.0.1"
+overrides = "^7.7.0"
 
 
 [build-system]
