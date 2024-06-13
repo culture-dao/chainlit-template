@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5 build 343 ] 2024-06-12
+
+### Added
+- Vector store handler
+- List all files in any vector store
+- Remove all empty vector stores
+- Assistant handler lists attached files
+
 ## [0.4.4 build 327] - 2021-06-11
 
 ### Added

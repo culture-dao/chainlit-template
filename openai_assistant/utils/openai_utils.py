@@ -8,7 +8,7 @@ import httpx
 import openai
 import yaml
 from chainlit.logger import logger
-from openai import AsyncOpenAI, DefaultHttpxClient, DefaultAsyncHttpxClient
+from openai import AsyncOpenAI, DefaultAsyncHttpxClient
 from openai.pagination import AsyncPage
 from openai.types.beta import Thread
 from pydantic import BaseModel
@@ -20,8 +20,6 @@ T = TypeVar('T')
 
 class CustomHttpxClient(DefaultAsyncHttpxClient):
     def __init__(self, **kwargs):
-        # kwargs.setdefault("timeout", httpx.Timeout(10.0, read=5.0, write=5.0))
-        # kwargs.setdefault("limits", httpx.Limits(max_keepalive_connections=10, max_connections=100))
         super().__init__(**kwargs)
 
         # Add retry logic to the transport
@@ -37,7 +35,6 @@ class AsyncPaginatorHelper(Generic[T]):
     async def collect_all_items(paginator: AsyncPage[T]) -> List[T]:
         items = []
         async for item in paginator:
-            logging.info(item)
             items.append(item)
         return items
 
@@ -169,7 +166,7 @@ def list_to_dict(_list: list[[BaseModel]]) -> dict[str, object]:
     _dict = {}
 
     for obj in _list:
-        _dict[obj.name] = obj
+        _dict[obj.id] = obj
 
     return _dict
 
